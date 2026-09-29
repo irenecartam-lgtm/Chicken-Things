@@ -16,6 +16,12 @@ public class EnemyHealth : MonoBehaviour
     public GameObject deathEffect;
 
     private int currentHealth;
+
+    public int CurrentHealth => currentHealth;
+
+    // (vidaActual, vidaMaxima). La barra de vida se suscribe a esto.
+    public event System.Action<int, int> OnHealthChanged;
+
     private Renderer[] renderers;
     private Color[] originalColors;
     private Rigidbody rb;
@@ -38,7 +44,8 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
 
-        currentHealth -= amount;
+        currentHealth = Mathf.Max(0, currentHealth - amount);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
         StopAllCoroutines();
         StartCoroutine(Flash());
