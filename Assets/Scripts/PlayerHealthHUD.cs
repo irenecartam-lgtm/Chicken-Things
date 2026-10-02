@@ -9,7 +9,7 @@ public class PlayerHealthHUD : MonoBehaviour
 {
     [Header("Aspecto")]
     public float diameter = 160f;
-    public Vector2 margin = new Vector2(40f, 40f);
+    public Vector2 margin = new Vector2(90f, 90f);
     [Range(0.05f, 0.3f)] public float ringThickness = 0.12f;
     public Color fullColor = new Color(0.25f, 0.9f, 0.35f);
     public Color midColor = new Color(1f, 0.85f, 0.2f);
