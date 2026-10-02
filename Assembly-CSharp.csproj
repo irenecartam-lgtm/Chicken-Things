@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Enemyhealthbar.cs" />
     <Compile Include="Assets\TutorialInfo\Readme.cs" />
+    <Compile Include="Assets\Scripts\PlayerHealthHUD.cs" />
     <Compile Include="Assets\Scripts\Enemychaser.cs" />
     <Compile Include="Assets\Scripts\Wavespawner.cs" />
     <Compile Include="Assets\Scripts\EnemyController.cs" />
