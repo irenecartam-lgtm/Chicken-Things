@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+ 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
@@ -8,79 +8,98 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 5f;
     public float sprintSpeed = 9f;
     public float acceleration = 40f;
-
-    [Header("Apuntado")]
+ 
+    [Header("Camara")]
+    [Tooltip("Si se asigna: movimiento relativo a la camara y el nugget mira hacia donde mira ella. " +
+             "Si se deja vacio: comportamiento cenital antiguo (ejes del mundo + apuntado al cursor).")]
+    public CameraController cameraRig;
+ 
+    [Header("Apuntado (solo modo cenital, sin cameraRig)")]
     public Transform visual;
     [Tooltip("ON: gira hacia el cursor. OFF: gira hacia donde se mueve.")]
     public bool aimWithMouse = true;
     public float turnSpeed = 25f;
-
+ 
     private Rigidbody rb;
     private Camera cam;
     private Vector3 inputDirection;
     private bool isSprinting;
-
+ 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+        // Sin interpolacion la camara pegada al jugador tiembla, sobre todo en primera persona.
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
         if (visual == null) visual = transform;
-
+ 
         cam = Camera.main;
         if (cam == null)
-            Debug.LogWarning("[PlayerController] No hay camara con tag MainCamera. El apuntado con raton no funcionara.");
-
+            Debug.LogWarning("[PlayerController] No hay camara con tag MainCamera.");
+ 
         if (rb.isKinematic)
             Debug.LogWarning("[PlayerController] Rigidbody Kinematic: ignorara la velocidad.");
     }
-
+ 
     private void Update()
     {
         ReadInput();
-        Turn();          // el giro es visual, no fisico: va en Update para que responda al instante
+        Turn();
     }
-
+ 
     private void FixedUpdate()
     {
         Move();
     }
-
+ 
     private void ReadInput()
     {
         Keyboard kb = Keyboard.current;
         if (kb == null) return;
-
+ 
         float h = 0f;
         float v = 0f;
-
+ 
         if (kb.aKey.isPressed || kb.leftArrowKey.isPressed)  h -= 1f;
         if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) h += 1f;
         if (kb.sKey.isPressed || kb.downArrowKey.isPressed)  v -= 1f;
         if (kb.wKey.isPressed || kb.upArrowKey.isPressed)    v += 1f;
-
-        inputDirection = new Vector3(h, 0f, v);
-        if (inputDirection.sqrMagnitude > 1f) inputDirection.Normalize();
-
+ 
+        Vector3 raw = new Vector3(h, 0f, v);
+        if (raw.sqrMagnitude > 1f) raw.Normalize();
+ 
+        // Con camara en 1a/3a persona, W es "hacia donde miro", no "hacia el norte del mapa".
+        inputDirection = cameraRig != null
+            ? Quaternion.Euler(0f, cameraRig.Yaw, 0f) * raw
+            : raw;
+ 
         isSprinting = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
     }
-
+ 
     private void Move()
     {
         float targetSpeed = isSprinting ? sprintSpeed : walkSpeed;
         Vector3 targetVelocity = inputDirection * targetSpeed;
-
+ 
         Vector3 current = rb.linearVelocity;
         Vector3 horizontal = new Vector3(current.x, 0f, current.z);
-
+ 
         horizontal = Vector3.MoveTowards(horizontal, targetVelocity, acceleration * Time.fixedDeltaTime);
-
+ 
         rb.linearVelocity = new Vector3(horizontal.x, current.y, horizontal.z);
     }
-
+ 
     private void Turn()
     {
+        if (cameraRig != null)
+        {
+            // Giro instantaneo: en primera persona cualquier retraso se nota como mareo.
+            visual.rotation = Quaternion.Euler(0f, cameraRig.Yaw, 0f);
+            return;
+        }
+ 
         Vector3 lookDirection;
-
+ 
         if (aimWithMouse)
         {
             if (!TryGetAimPoint(out Vector3 aimPoint)) return;
@@ -90,25 +109,25 @@ public class PlayerController : MonoBehaviour
         {
             lookDirection = inputDirection;
         }
-
+ 
         lookDirection.y = 0f;
         if (lookDirection.sqrMagnitude < 0.01f) return;
-
+ 
         Quaternion target = Quaternion.LookRotation(lookDirection, Vector3.up);
         visual.rotation = Quaternion.Slerp(visual.rotation, target, turnSpeed * Time.deltaTime);
     }
-
-    // Proyecta el cursor sobre un plano horizontal a la altura del nugget.
+ 
+    // Modo cenital: proyecta el cursor sobre un plano horizontal a la altura del nugget.
     private bool TryGetAimPoint(out Vector3 point)
     {
         point = Vector3.zero;
-
+ 
         Mouse mouse = Mouse.current;
         if (mouse == null || cam == null) return false;
-
+ 
         Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
         Plane ground = new Plane(Vector3.up, transform.position);
-
+ 
         if (ground.Raycast(ray, out float distance))
         {
             point = ray.GetPoint(distance);
