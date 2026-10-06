@@ -25,6 +25,7 @@ public class PlayerHealthHUD : MonoBehaviour
     private Image ring, trail, damageFlash;
     private Text lifeLabel;
     private GameObject gameOverPanel;
+    private GameObject pausePanel;
     private Text toast;
     private float toastUntil;
 
@@ -104,6 +105,7 @@ public class PlayerHealthHUD : MonoBehaviour
         Stretch(lifeLabel.rectTransform, 0f);
 
         BuildGameOverPanel(canvasGO.transform);
+        BuildPausePanel(canvasGO.transform);
 
         // Aviso temporal arriba en el centro (partida guardada / cargada).
         toast = NewText("Aviso", canvasGO.transform, "", 34, new Color(1f, 1f, 1f, 0f));
@@ -146,6 +148,16 @@ public class PlayerHealthHUD : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
     }
 
+    public void ShowPause()
+    {
+        if (pausePanel != null) pausePanel.SetActive(true);
+    }
+
+    public void HidePause()
+    {
+        if (pausePanel != null) pausePanel.SetActive(false);
+    }
+
     public void ShowMessage(string message)
     {
         if (toast == null) return;
@@ -183,11 +195,6 @@ public class PlayerHealthHUD : MonoBehaviour
             toast.color = tc;
         }
 
-        if (gameOver && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
-        {
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
     }
 
     private void Apply()
@@ -218,12 +225,32 @@ public class PlayerHealthHUD : MonoBehaviour
         title.rectTransform.sizeDelta = new Vector2(1200f, 200f);
         title.rectTransform.anchoredPosition = new Vector2(0f, 60f);
 
-        Text hint = NewText("Reiniciar", panel.transform, "Pulsa R para reiniciar", 40, Color.white);
+        Text hint = NewText("Reiniciar", panel.transform, "R: reiniciar     L: cargar partida", 40, Color.white);
         hint.rectTransform.anchorMin = hint.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         hint.rectTransform.sizeDelta = new Vector2(1000f, 80f);
         hint.rectTransform.anchoredPosition = new Vector2(0f, -70f);
 
         gameOverPanel.SetActive(false);
+    }
+
+    private void BuildPausePanel(Transform parent)
+    {
+        Image panel = NewImage("Pausa", parent, null, new Color(0f, 0f, 0f, 0.6f));
+        Stretch(panel.rectTransform, 0f);
+        pausePanel = panel.gameObject;
+
+        Text title = NewText("Titulo", panel.transform, "PAUSA", 110, Color.white);
+        title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        title.rectTransform.sizeDelta = new Vector2(1200f, 200f);
+        title.rectTransform.anchoredPosition = new Vector2(0f, 60f);
+
+        Text hint = NewText("Controles", panel.transform,
+            "Esc / P: continuar     K: guardar     L: cargar     R: reiniciar", 36, Color.white);
+        hint.rectTransform.anchorMin = hint.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        hint.rectTransform.sizeDelta = new Vector2(1500f, 80f);
+        hint.rectTransform.anchoredPosition = new Vector2(0f, -70f);
+
+        pausePanel.SetActive(false);
     }
 
     // ------------------------------------------------------------ Helpers
