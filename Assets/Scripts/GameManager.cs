@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -22,13 +23,18 @@ public class GameManager : MonoBehaviour
     public Key saveKey = Key.K;
     public Key loadKey = Key.L;
 
+    [Header("Pausa")]
+    public Key pauseKey = Key.Escape;   // tambien funciona la tecla P
+
     [Header("UI (opcional)")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI lifeText;
 
     public bool IsGameOver => isGameOver;
+    public bool IsPaused => isPaused;
 
     private bool isGameOver = false;
+    private bool isPaused = false;
     private float invulnerableUntil = 0f;
     private PlayerHealthHUD hud;
 
@@ -54,8 +60,42 @@ public class GameManager : MonoBehaviour
         Keyboard kb = Keyboard.current;
         if (kb == null) return;
 
+        if (kb[pauseKey].wasPressedThisFrame || kb.pKey.wasPressedThisFrame) TogglePause();
+
         if (kb[saveKey].wasPressedThisFrame) SaveGame();
         if (kb[loadKey].wasPressedThisFrame) LoadGame();
+
+        // R reinicia la partida desde la pausa o desde el Game Over.
+        if ((isPaused || isGameOver) && kb.rKey.wasPressedThisFrame)
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+    }
+
+    // --------------------------------------------------------------- Pausa
+    public void TogglePause()
+    {
+        if (isGameOver) return;
+        SetPaused(!isPaused);
+    }
+
+    private void SetPaused(bool paused)
+    {
+        isPaused = paused;
+        Time.timeScale = paused ? 0f : 1f;
+
+        // Con el tiempo a 0 el input seguiria activo (se podria disparar), asi que se bloquea.
+        PlayerController pc = FindFirstObjectByType<PlayerController>();
+        if (pc != null) pc.enabled = !paused;
+        PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
+        if (ps != null) ps.enabled = !paused;
+
+        if (hud != null)
+        {
+            if (paused) hud.ShowPause();
+            else hud.HidePause();
+        }
     }
 
     public void AddScore(int amount)
@@ -157,8 +197,9 @@ public class GameManager : MonoBehaviour
         PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
         if (ps != null) ps.enabled = true;
 
-        // Si estabas en Game Over, la partida vuelve a estar en marcha.
+        // Si estabas en Game Over o en pausa, la partida vuelve a estar en marcha.
         isGameOver = false;
+        isPaused = false;
         Time.timeScale = 1f;
         invulnerableUntil = Time.time + 1f;
 
@@ -166,6 +207,7 @@ public class GameManager : MonoBehaviour
         if (hud != null)
         {
             hud.HideGameOver();
+            hud.HidePause();
             hud.ShowMessage("Partida cargada");
         }
     }
