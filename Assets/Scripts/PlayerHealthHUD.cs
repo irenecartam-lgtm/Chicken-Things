@@ -25,6 +25,8 @@ public class PlayerHealthHUD : MonoBehaviour
     private Image ring, trail, damageFlash;
     private Text lifeLabel;
     private GameObject gameOverPanel;
+    private Text toast;
+    private float toastUntil;
 
     private float targetRatio = 1f, shownRatio = 1f, trailRatio = 1f;
     private float lastHitTime = -99f;
@@ -103,6 +105,14 @@ public class PlayerHealthHUD : MonoBehaviour
 
         BuildGameOverPanel(canvasGO.transform);
 
+        // Aviso temporal arriba en el centro (partida guardada / cargada).
+        toast = NewText("Aviso", canvasGO.transform, "", 34, new Color(1f, 1f, 1f, 0f));
+        toast.rectTransform.anchorMin = toast.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+        toast.rectTransform.pivot = new Vector2(0.5f, 1f);
+        toast.rectTransform.sizeDelta = new Vector2(900f, 60f);
+        toast.rectTransform.anchoredPosition = new Vector2(0f, -40f);
+        toast.gameObject.AddComponent<Outline>().effectColor = Color.black;
+
         targetRatio = shownRatio = trailRatio = Ratio(life, maxLife);
         SetLife(life, maxLife, false);
         Apply();
@@ -130,6 +140,20 @@ public class PlayerHealthHUD : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
     }
 
+    public void HideGameOver()
+    {
+        gameOver = false;
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+    }
+
+    public void ShowMessage(string message)
+    {
+        if (toast == null) return;
+        toast.text = message;
+        toast.color = Color.white;
+        toastUntil = Time.unscaledTime + 1.8f;
+    }
+
     // ------------------------------------------------------------- Update
     private void Update()
     {
@@ -150,6 +174,13 @@ public class PlayerHealthHUD : MonoBehaviour
             Color c = damageFlash.color;
             c.a = Mathf.MoveTowards(c.a, 0f, 1.2f * dt);
             damageFlash.color = c;
+        }
+
+        if (toast != null && toast.color.a > 0f && Time.unscaledTime > toastUntil)
+        {
+            Color tc = toast.color;
+            tc.a = Mathf.MoveTowards(tc.a, 0f, 2f * dt);
+            toast.color = tc;
         }
 
         if (gameOver && Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
