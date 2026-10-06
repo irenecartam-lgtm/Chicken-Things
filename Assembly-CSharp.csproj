@@ -57,6 +57,8 @@
     <Compile Include="Assets\TutorialInfo\Readme.cs" />
     <Compile Include="Assets\Scripts\PlayerHealthHUD.cs" />
     <Compile Include="Assets\Scripts\Enemychaser.cs" />
+    <Compile Include="Assets\Scripts\SaveSystem.cs" />
+    <Compile Include="Assets\Scripts\SaveData.cs" />
     <Compile Include="Assets\Scripts\Wavespawner.cs" />
     <Compile Include="Assets\Scripts\EnemyController.cs" />
     <Compile Include="Assets\Scripts\Bullet.cs" />
