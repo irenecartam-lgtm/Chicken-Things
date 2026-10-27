@@ -560,7 +560,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: 61b10b1b59bf8114ebfc6eada8dbce18, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.82
+      value: 0.97
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: 61b10b1b59bf8114ebfc6eada8dbce18, type: 3}
       propertyPath: m_LocalPosition.z
@@ -687,6 +687,9 @@ MonoBehaviour:
   maxLife: 10
   invulnerableTime: 0.5
   playerPortrait: {fileID: -6865344981023876, guid: 2238f31873c534250a0257ee7ded64e9, type: 3}
+  saveKey: 25
+  loadKey: 26
+  pauseKey: 60
   scoreText: {fileID: 0}
   lifeText: {fileID: 0}
 --- !u!4 &957104439
@@ -776,7 +779,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1503049589}
   - component: {fileID: 1503049592}
-  - component: {fileID: 1503049590}
   m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
@@ -800,27 +802,6 @@ Transform:
   - {fileID: 1223826378}
   m_Father: {fileID: 1910238876}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1503049590
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503049588}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!33 &1503049592
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -842,6 +823,7 @@ GameObject:
   - component: {fileID: 1910238872}
   - component: {fileID: 1910238877}
   - component: {fileID: 1910238878}
+  - component: {fileID: 1910238879}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -905,15 +887,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1910238871}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.092, z: 0}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 793952215}
   - {fileID: 1503049589}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &1910238877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -929,7 +911,7 @@ MonoBehaviour:
   walkSpeed: 5
   sprintSpeed: 9
   acceleration: 40
-  cameraRig: {fileID: 0}
+  cameraRig: {fileID: 330585548}
   visual: {fileID: 0}
   aimWithMouse: 1
   turnSpeed: 15
@@ -950,6 +932,21 @@ MonoBehaviour:
   cameraRig: {fileID: 330585548}
   fireRate: 5
   automatic: 1
+--- !u!114 &1910238879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910238871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6092ba9dfa24322b4c0a611b1af51c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FitColliderToModel
+  ignoreNames:
+  - Gun
+  - Muzzle
 --- !u!1001 &879607386542078745
 PrefabInstance:
   m_ObjectHideFlags: 0

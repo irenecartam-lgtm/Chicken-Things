@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2763980165922306881}
   - component: {fileID: 4777079704131142204}
   - component: {fileID: 3989472156653492819}
+  - component: {fileID: -7199837418289519777}
   m_Layer: 0
   m_Name: Enemy (1)
   m_TagString: Untagged
@@ -30,8 +31,8 @@ Transform:
   m_GameObject: {fileID: 3924187902708225493}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.75, y: 1.31, z: 0.75}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8887738501863274631}
@@ -130,6 +131,21 @@ MonoBehaviour:
   turnSpeed: 10
   damageAmount: 1
   damageCooldown: 1
+--- !u!114 &-7199837418289519777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3924187902708225493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6092ba9dfa24322b4c0a611b1af51c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FitColliderToModel
+  ignoreNames:
+  - Gun
+  - Muzzle
 --- !u!1001 &6762037881579368311
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -138,6 +154,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 728639408176354483}
     m_Modifications:
+    - target: {fileID: -7242784011445216130, guid: 564f0c17c43d7a44f9d014c54eae6c51, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7242784011445216130, guid: 564f0c17c43d7a44f9d014c54eae6c51, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.179
+      objectReference: {fileID: 0}
     - target: {fileID: -6689036041284674117, guid: 564f0c17c43d7a44f9d014c54eae6c51, type: 3}
       propertyPath: m_Name
       value: chicken_tender
