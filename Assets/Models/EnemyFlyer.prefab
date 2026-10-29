@@ -1,0 +1,238 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6995642469553930029
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2520606416538965657}
+  - component: {fileID: 1235821678276152538}
+  - component: {fileID: 4476032770129661330}
+  - component: {fileID: 5170053349260065360}
+  - component: {fileID: 5090974029348514355}
+  - component: {fileID: 3335590776969215424}
+  - component: {fileID: 7037054220139680435}
+  m_Layer: 0
+  m_Name: EnemyFlyer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2520606416538965657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -90816640, y: -0, z: -17.69608}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 591472424414711005}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &1235821678276152538
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!136 &4476032770129661330
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5170053349260065360
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5d024e569209b04eaa8214626eb28f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
+  maxHealth: 2
+  scoreOnDeath: 50
+  hitColor: {r: 1, g: 1, b: 1, a: 1}
+  flashDuration: 0.08
+  knockbackForce: 4
+  deathEffect: {fileID: 0}
+--- !u!114 &5090974029348514355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e6ed44d10d2a104e9fdfd248497d25f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyFlyer
+  cruiseHeight: 4
+  flySpeed: 5.5
+  acceleration: 14
+  turnSpeed: 8
+  orbitRadius: 5
+  orbitSpeed: 55
+  timeBeforeDive: {x: 1.5, y: 3.5}
+  diveSpeed: 15
+  diveHitDistance: 1.3
+  diveTimeout: 2.5
+  bobAmplitude: 0.3
+  bobSpeed: 7
+  bankAngle: 35
+  damageAmount: 1
+  damageCooldown: 1
+  currentState: 0
+--- !u!114 &3335590776969215424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0efdf47cd4c539439c6651bc2c9256a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeathDebris
+  pieceCount: 12
+  pieceSize: 0.18
+  sizeVariation: 0.5
+  shape: 0
+  flatten: 0.45
+  scatterRadius: 0.7
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundOffset: 0.02
+  maxPiecesInScene: 250
+  useEnemyColor: 1
+  fallbackColor: {r: 0.85, g: 0.55, b: 0.3, a: 1}
+--- !u!114 &7037054220139680435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6995642469553930029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6092ba9dfa24322b4c0a611b1af51c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FitColliderToModel
+  ignoreNames:
+  - Gun
+  - Muzzle
+--- !u!1001 &6355625804491474445
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2520606416538965657}
+    m_Modifications:
+    - target: {fileID: -212285753890768171, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_Name
+      value: chicken_wing
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: -8037938140082288066, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+--- !u!4 &591472424414711005 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5766545926158600912, guid: 4e382447080ecae40831e9c533f06902, type: 3}
+  m_PrefabInstance: {fileID: 6355625804491474445}
+  m_PrefabAsset: {fileID: 0}
