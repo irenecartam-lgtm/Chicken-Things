@@ -64,6 +64,9 @@
     <Compile Include="Assets\Scripts\EnemyController.cs" />
     <Compile Include="Assets\Scripts\Bullet.cs" />
     <Compile Include="Assets\Scripts\PlayerShooting.cs" />
+    <Compile Include="Assets\Scripts\WaveBanner.cs" />
+    <Compile Include="Assets\Scripts\DeathDebris.cs" />
+    <Compile Include="Assets\Scripts\WeaponHolder.cs" />
     <Compile Include="Assets\Scripts\FollowCamera.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Scripts\Playercontroller.cs" />

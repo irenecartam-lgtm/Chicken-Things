@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
@@ -13,8 +14,13 @@ public class CameraController : MonoBehaviour
 
     [Header("Objetivo")]
     public Transform target;
+
+    [Tooltip("El arma (objeto Gun). Sus renderers NUNCA se ocultan: " +
+             "es justo lo que quieres ver en primera persona.")]
+    public Transform weapon;
+
     [Tooltip("Renderers que se ocultan en primera persona (siguen proyectando sombra). " +
-             "Si lo dejas vacio se ocultan TODOS los del target, pistola incluida.")]
+             "Vacio = todos los del target MENOS los del arma.")]
     public Renderer[] hideInFirstPerson;
 
     [Header("Modo")]
@@ -24,7 +30,7 @@ public class CameraController : MonoBehaviour
     public float transitionSpeed = 6f;
 
     [Header("Primera persona")]
-    public float eyeHeight = 0.6f;
+    public float eyeHeight = 1.6f;
     public float fpFieldOfView = 75f;
 
     [Header("Tercera persona")]
@@ -48,6 +54,9 @@ public class CameraController : MonoBehaviour
     public float crosshairSize = 4f;
 
     public float Yaw => yaw;
+    public float Pitch => pitch;
+    [Tooltip("0 = primera persona, 1 = tercera. Lo usa WeaponHolder.")]
+    public float ViewBlend => blend;
     public bool IsFirstPerson => mode == Mode.FirstPerson;
 
     private Camera cam;
@@ -72,7 +81,7 @@ public class CameraController : MonoBehaviour
         {
             yaw = target.eulerAngles.y;
             if (hideInFirstPerson == null || hideInFirstPerson.Length == 0)
-                hideInFirstPerson = target.GetComponentsInChildren<Renderer>();
+                hideInFirstPerson = CollectBodyRenderers();
         }
 
         originalShadowModes = new ShadowCastingMode[hideInFirstPerson != null ? hideInFirstPerson.Length : 0];
@@ -80,6 +89,19 @@ public class CameraController : MonoBehaviour
             if (hideInFirstPerson[i] != null) originalShadowModes[i] = hideInFirstPerson[i].shadowCastingMode;
 
         blend = mode == Mode.ThirdPerson ? 1f : 0f;
+    }
+
+    // Todos los renderers del jugador MENOS los del arma.
+    private Renderer[] CollectBodyRenderers()
+    {
+        List<Renderer> list = new List<Renderer>();
+
+        foreach (Renderer r in target.GetComponentsInChildren<Renderer>(true))
+        {
+            if (weapon != null && r.transform.IsChildOf(weapon)) continue;
+            list.Add(r);
+        }
+        return list.ToArray();
     }
 
     private void OnEnable()  { SetCursorLocked(true); }
@@ -179,11 +201,11 @@ public class CameraController : MonoBehaviour
         return pivot + dir * closest;
     }
 
-    // Ni el propio jugador ni las balas en vuelo cuentan como obstaculo o blanco:
-    // si no, la mirilla se "pega" a la bala anterior al disparar en automatico.
+    // Ni el propio jugador, ni el arma, ni las balas en vuelo cuentan como obstaculo o blanco.
     private bool ShouldIgnore(Collider c)
     {
         if (target != null && c.transform.IsChildOf(target)) return true;
+        if (weapon != null && c.transform.IsChildOf(weapon)) return true;
         return c.GetComponentInParent<Bullet>() != null;
     }
 
@@ -196,9 +218,12 @@ public class CameraController : MonoBehaviour
         {
             Renderer r = hideInFirstPerson[i];
             if (r == null) continue;
-            r.shadowCastingMode = hide ? ShadowCastingMode.ShadowsOnly : originalShadowModes[i];
+            r.shadowCastingMode = hide ? ShadowsOnlyOr(i, hide) : originalShadowModes[i];
         }
     }
+
+    private ShadowCastingMode ShadowsOnlyOr(int i, bool hide)
+        => hide ? ShadowCastingMode.ShadowsOnly : originalShadowModes[i];
 
     private void SetCursorLocked(bool locked)
     {

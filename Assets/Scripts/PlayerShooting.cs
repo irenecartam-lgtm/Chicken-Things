@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerShooting : MonoBehaviour
 {
     [Header("Referencias")]
-    [Tooltip("Empty en la boquilla del bote. Hijo de Gun. Su eje Z+ es la direccion de disparo.")]
+    [Tooltip("Empty en la boquilla del bote. Hijo de Gun. Su eje Z+ es la salida.")]
     public Transform muzzle;
 
     [Tooltip("Prefab de la bolita (Sphere.prefab).")]
@@ -14,8 +14,8 @@ public class PlayerShooting : MonoBehaviour
     [Tooltip("Si se asigna, la bala va hacia la mirilla en vez de recta desde el canon.")]
     public CameraController cameraRig;
 
-    [Tooltip("El objeto 'Gun'. Se desplaza y rota con el retroceso.")]
-    public Transform gunPivot;
+    [Tooltip("El WeaponHolder del objeto Gun. Se encarga del retroceso.")]
+    public WeaponHolder weaponHolder;
 
     [Header("Cadencia")]
     [Tooltip("Disparos por segundo.")]
@@ -28,19 +28,11 @@ public class PlayerShooting : MonoBehaviour
     [Tooltip("Grados de desviacion aleatoria. 0 = punteria perfecta.")]
     public float spread = 1.5f;
 
-    [Header("Retroceso")]
-    public float kickBack = 0.1f;
-    public float kickRotation = 12f;
-    [Tooltip("Velocidad a la que el arma vuelve a su sitio.")]
-    public float kickRecovery = 14f;
-
     [Header("Feedback")]
     public ParticleSystem muzzleFlash;
     public AudioSource shootSound;
 
     private float nextFireTime;
-    private Vector3 gunRestPosition;
-    private Quaternion gunRestRotation;
 
     private void Awake()
     {
@@ -50,20 +42,16 @@ public class PlayerShooting : MonoBehaviour
         if (bulletPrefab == null)
             Debug.LogError("[PlayerShooting] Falta asignar el Bullet Prefab.", this);
 
-        if (gunPivot != null)
+        if (muzzle != null)
         {
-            gunRestPosition = gunPivot.localPosition;
-            gunRestRotation = gunPivot.localRotation;
+            Vector3 s = muzzle.lossyScale;
+            if (Mathf.Abs(s.x) < 0.0001f || Mathf.Abs(s.y) < 0.0001f || Mathf.Abs(s.z) < 0.0001f)
+                Debug.LogError("[PlayerShooting] El Muzzle tiene algun eje de Scale a 0. " +
+                               "Ponlo a (1,1,1) o la direccion de disparo sera incorrecta.", muzzle);
         }
     }
 
     private void Update()
-    {
-        HandleInput();
-        RecoverFromRecoil();
-    }
-
-    private void HandleInput()
     {
         Mouse mouse = Mouse.current;
         if (mouse == null) return;
@@ -107,7 +95,7 @@ public class PlayerShooting : MonoBehaviour
         Bullet b = bullet.GetComponent<Bullet>();
         if (b != null) b.Init(transform);
 
-        ApplyRecoil();
+        if (weaponHolder != null) weaponHolder.AddRecoil();
 
         if (muzzleFlash != null) muzzleFlash.Play();
 
@@ -116,24 +104,5 @@ public class PlayerShooting : MonoBehaviour
             shootSound.pitch = Random.Range(0.92f, 1.08f);
             shootSound.Play();
         }
-    }
-
-    private void ApplyRecoil()
-    {
-        if (gunPivot == null) return;
-
-        gunPivot.localPosition -= Vector3.forward * kickBack;
-        gunPivot.localRotation *= Quaternion.Euler(-kickRotation, 0f, 0f);
-    }
-
-    private void RecoverFromRecoil()
-    {
-        if (gunPivot == null) return;
-
-        gunPivot.localPosition = Vector3.Lerp(
-            gunPivot.localPosition, gunRestPosition, kickRecovery * Time.deltaTime);
-
-        gunPivot.localRotation = Quaternion.Slerp(
-            gunPivot.localRotation, gunRestRotation, kickRecovery * Time.deltaTime);
     }
 }

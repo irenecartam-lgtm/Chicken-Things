@@ -25,12 +25,14 @@ public class EnemyHealth : MonoBehaviour
     private Renderer[] renderers;
     private Color[] originalColors;
     private Rigidbody rb;
+    private DeathDebris debris;
     private bool isDead;
 
     private void Awake()
     {
         currentHealth = maxHealth;
         rb = GetComponent<Rigidbody>();
+        debris = GetComponent<DeathDebris>();
 
         renderers = GetComponentsInChildren<Renderer>();
         originalColors = new Color[renderers.Length];
@@ -75,6 +77,9 @@ public class EnemyHealth : MonoBehaviour
 
         if (GameManager.instance != null)
             GameManager.instance.AddScore(scoreOnDeath);
+
+        // Las bolitas se lanzan ANTES de destruir el objeto: salen como hijas de la escena.
+        if (debris != null) debris.Burst();
 
         if (deathEffect != null)
             Instantiate(deathEffect, transform.position, Quaternion.identity);
