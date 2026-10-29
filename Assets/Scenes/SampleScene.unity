@@ -707,6 +707,80 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1002161497
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1503049589}
+    m_Modifications:
+    - target: {fileID: -6689036041284674117, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_Name
+      value: ketchup_bottle
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5.217359
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5.217359
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5.217359
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 90
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: -5645937942226959685, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+--- !u!4 &1002161498 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2774220344278030320, guid: d2b4290619a8f4140bcf3fa0db1d1fb5, type: 3}
+  m_PrefabInstance: {fileID: 1002161497}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1223826377
 GameObject:
   m_ObjectHideFlags: 0
@@ -799,6 +873,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1002161498}
   - {fileID: 1223826378}
   m_Father: {fileID: 1910238876}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -930,8 +1005,15 @@ MonoBehaviour:
   muzzle: {fileID: 1223826378}
   bulletPrefab: {fileID: 4590491385304847733, guid: 52675c3ab9f71fa4a9868172a95b7cc4, type: 3}
   cameraRig: {fileID: 330585548}
+  gunPivot: {fileID: 0}
   fireRate: 5
   automatic: 1
+  spread: 1.5
+  kickBack: 0.1
+  kickRotation: 12
+  kickRecovery: 14
+  muzzleFlash: {fileID: 0}
+  shootSound: {fileID: 0}
 --- !u!114 &1910238879
 MonoBehaviour:
   m_ObjectHideFlags: 0
