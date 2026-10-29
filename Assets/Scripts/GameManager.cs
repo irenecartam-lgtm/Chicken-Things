@@ -53,6 +53,13 @@ public class GameManager : MonoBehaviour
         hud = new GameObject("PlayerHealthHUD").AddComponent<PlayerHealthHUD>();
         hud.Build(playerPortrait, life, maxLife);
         UpdateUI();
+
+        // Si se entro desde el menu con "Cargar partida", se aplica aqui.
+        if (GameBoot.loadSaveOnStart)
+        {
+            GameBoot.loadSaveOnStart = false;
+            LoadGame();
+        }
     }
 
     private void Update()

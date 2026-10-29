@@ -53,6 +53,7 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\BCLExtensions\TargetingPacks\netstandard2.1\analyzers\dotnet\roslyn4.0\cs\System.Text.Json.SourceGeneration.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\ClimbableMountains.cs" />
     <Compile Include="Assets\Scripts\Enemyhealthbar.cs" />
     <Compile Include="Assets\Scripts\EnemyFlyer.cs" />
     <Compile Include="Assets\Scripts\PlayerHealthHUD.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Assets\Scripts\Wavespawner.cs" />
     <Compile Include="Assets\Scripts\EnemyController.cs" />
     <Compile Include="Assets\Scripts\Bullet.cs" />
+    <Compile Include="Assets\Scripts\MainMenu.cs" />
     <Compile Include="Assets\Scripts\PlayerShooting.cs" />
     <Compile Include="Assets\Scripts\WaveBanner.cs" />
     <Compile Include="Assets\Scripts\DeathDebris.cs" />
