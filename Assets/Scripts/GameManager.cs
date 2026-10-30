@@ -164,15 +164,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        WaveSpawner spawner = FindFirstObjectByType<WaveSpawner>();
+        int wave = spawner != null ? spawner.WaveToResume : 1;
+
         SaveData data = new SaveData
         {
             score = score,
             life = life,
-            playerPosition = pc.transform.position
+            playerPosition = pc.transform.position,
+            wave = wave
         };
         SaveSystem.Save(data);
 
-        if (hud != null) hud.ShowMessage("Partida guardada");
+        if (hud != null) hud.ShowMessage("Partida guardada - Oleada " + wave);
     }
 
     public void LoadGame()
@@ -204,6 +208,13 @@ public class GameManager : MonoBehaviour
         PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
         if (ps != null) ps.enabled = true;
 
+        // Retoma la oleada guardada (las partidas antiguas no traen oleada: se deja como esta).
+        if (data.wave > 0)
+        {
+            WaveSpawner spawner = FindFirstObjectByType<WaveSpawner>();
+            if (spawner != null) spawner.RestartAtWave(data.wave);
+        }
+
         // Si estabas en Game Over o en pausa, la partida vuelve a estar en marcha.
         isGameOver = false;
         isPaused = false;
@@ -215,7 +226,7 @@ public class GameManager : MonoBehaviour
         {
             hud.HideGameOver();
             hud.HidePause();
-            hud.ShowMessage("Partida cargada");
+            hud.ShowMessage(data.wave > 0 ? "Partida cargada - Oleada " + data.wave : "Partida cargada");
         }
     }
 }

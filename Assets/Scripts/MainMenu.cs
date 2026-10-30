@@ -161,7 +161,9 @@ public class MainMenu : MonoBehaviour
             "K                  Guardar partida\n" +
             "L                  Cargar partida\n" +
             "Esc / P            Pausa\n" +
-            "R                  Reiniciar";
+            "R                  Reiniciar" +
+            "Shift              Correr\n" +
+            "Espacio            Saltar\n";
 
         Text text = NewText("Lista", panel.transform, body, 34, Color.white);
         text.alignment = TextAnchor.UpperCenter;

@@ -27,6 +27,25 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Pegado al suelo. Evita salir volando al coronar una loma.")]
     public float stickToGround = 3f;
 
+    [Header("Salto")]
+    [Tooltip("Altura maxima del salto en metros (manteniendo la tecla).")]
+    public float jumpHeight = 1.6f;
+
+    [Tooltip("Gravedad extra al caer. Con 1 el salto es flotante; mas alto, mas seco.")]
+    public float fallGravityMultiplier = 1.8f;
+
+    [Tooltip("Gravedad extra si sueltas el salto antes de tiempo: salto corto.")]
+    public float shortHopGravityMultiplier = 2.5f;
+
+    [Tooltip("Margen para saltar justo despues de dejar de pisar el suelo.")]
+    public float coyoteTime = 0.12f;
+
+    [Tooltip("Margen para pulsar salto un instante antes de aterrizar.")]
+    public float jumpBufferTime = 0.12f;
+
+    [Tooltip("Pendiente maxima desde la que aun se puede saltar. Sirve para salir de las grietas entre montañas.")]
+    [Range(30f, 85f)] public float maxJumpSlope = 75f;
+
     [Header("Camara")]
     [Tooltip("Si se asigna: movimiento relativo a la camara y el nugget mira hacia donde mira ella. " +
              "Si se deja vacio: comportamiento cenital antiguo (ejes del mundo + apuntado al cursor).")]
@@ -48,6 +67,11 @@ public class PlayerController : MonoBehaviour
     private Vector3 inputDirection;
     private Vector3 groundNormal = Vector3.up;
     private bool isSprinting;
+
+    private bool jumpHeld;
+    private float jumpBufferedUntil = -1f;
+    private float lastGroundedTime = -999f;
+    private const float LeaveGroundSpeed = 2f;   // si te alejas del suelo a mas de esto, estas saltando
 
     private void Awake()
     {
@@ -89,6 +113,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         CheckGround();
+        TryJump();
         Move();
     }
 
@@ -114,6 +139,10 @@ public class PlayerController : MonoBehaviour
             : raw;
 
         isSprinting = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
+
+        // El salto se "apunta" unos milisegundos: asi no se pierde si lo pulsas justo antes de aterrizar.
+        if (kb.spaceKey.wasPressedThisFrame) jumpBufferedUntil = Time.time + jumpBufferTime;
+        jumpHeld = kb.spaceKey.isPressed;
     }
 
     // Busca el suelo con una esfera hacia abajo y guarda su inclinacion.
@@ -123,7 +152,7 @@ public class PlayerController : MonoBehaviour
         groundNormal = Vector3.up;
         currentSlope = 0f;
 
-        if (col == null) { isGrounded = true; return; }
+        if (col == null) { isGrounded = true; lastGroundedTime = Time.time; return; }
 
         Bounds bounds = col.bounds;
         float halfHeight = bounds.extents.y;
@@ -148,7 +177,32 @@ public class PlayerController : MonoBehaviour
         if (closest == float.MaxValue) return;
 
         currentSlope = Vector3.Angle(groundNormal, Vector3.up);
+
+        // Si ya nos estamos separando del suelo (saltando), no cuenta como pisarlo.
+        if (Vector3.Dot(rb.linearVelocity, groundNormal) > LeaveGroundSpeed) return;
+
         isGrounded = currentSlope <= maxSlopeAngle;
+
+        // Tambien se puede saltar desde una cuesta demasiado empinada para andar (hasta Max Jump Slope).
+        if (isGrounded || currentSlope <= maxJumpSlope) lastGroundedTime = Time.time;
+    }
+
+    private void TryJump()
+    {
+        bool wantsJump = Time.time <= jumpBufferedUntil;
+        bool canJump = Time.time - lastGroundedTime <= coyoteTime;
+        if (!wantsJump || !canJump) return;
+
+        // v = raiz(2 * g * h): la velocidad justa para llegar a la altura pedida.
+        float jumpSpeed = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * jumpHeight);
+
+        Vector3 velocity = rb.linearVelocity;
+        velocity.y = jumpSpeed;
+        rb.linearVelocity = velocity;
+
+        jumpBufferedUntil = -1f;
+        lastGroundedTime = -999f;   // evita un segundo salto en el aire
+        isGrounded = false;
     }
 
     private void Move()
@@ -177,7 +231,14 @@ public class PlayerController : MonoBehaviour
             Vector3 target = new Vector3(inputDirection.x, 0f, inputDirection.z) * targetSpeed;
 
             horizontal = Vector3.MoveTowards(horizontal, target, airAcceleration * Time.fixedDeltaTime);
-            rb.linearVelocity = new Vector3(horizontal.x, current.y, horizontal.z);
+
+            // Gravedad extra: caida mas seca, y salto corto si sueltas la tecla.
+            float extra = 0f;
+            if (current.y < 0f) extra = fallGravityMultiplier - 1f;
+            else if (current.y > 0f && !jumpHeld) extra = shortHopGravityMultiplier - 1f;
+            float y = current.y + Physics.gravity.y * extra * Time.fixedDeltaTime;
+
+            rb.linearVelocity = new Vector3(horizontal.x, y, horizontal.z);
         }
     }
 
