@@ -152,24 +152,44 @@ public class MainMenu : MonoBehaviour
         title.rectTransform.sizeDelta = new Vector2(1200f, 120f);
         title.rectTransform.anchoredPosition = new Vector2(0f, 250f);
 
-        string body =
-            "WASD / Flechas     Moverse\n" +
-            "Shift              Correr\n" +
-            "Raton              Apuntar\n" +
-            "Clic izquierdo     Disparar ketchup\n" +
-            "V                  Cambiar 1a / 3a persona\n\n" +
-            "K                  Guardar partida\n" +
-            "L                  Cargar partida\n" +
-            "Esc / P            Pausa\n" +
-            "R                  Reiniciar" +
-            "Shift              Correr\n" +
-            "Espacio            Saltar\n";
+        // Dos columnas con las mismas lineas: asi quedan alineadas aunque la letra no sea monoespaciada.
+        string keys =
+            "WASD / Flechas\n" +
+            "Shift\n" +
+            "Espacio\n" +
+            "Raton\n" +
+            "Clic izquierdo\n" +
+            "V\n\n" +
+            "K\n" +
+            "L\n" +
+            "Esc / P\n" +
+            "R";
 
-        Text text = NewText("Lista", panel.transform, body, 34, Color.white);
-        text.alignment = TextAnchor.UpperCenter;
-        text.rectTransform.anchorMin = text.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        text.rectTransform.sizeDelta = new Vector2(1100f, 450f);
-        text.rectTransform.anchoredPosition = new Vector2(0f, -40f);
+        string actions =
+            "Moverse\n" +
+            "Correr\n" +
+            "Saltar\n" +
+            "Apuntar\n" +
+            "Disparar ketchup\n" +
+            "Cambiar 1a / 3a persona\n\n" +
+            "Guardar partida\n" +
+            "Cargar partida\n" +
+            "Pausa\n" +
+            "Reiniciar";
+
+        Text keysText = NewText("Teclas", panel.transform, keys, 34, new Color(1f, 0.78f, 0.2f));
+        keysText.alignment = TextAnchor.UpperRight;
+        keysText.rectTransform.anchorMin = keysText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        keysText.rectTransform.pivot = new Vector2(1f, 1f);
+        keysText.rectTransform.sizeDelta = new Vector2(500f, 520f);
+        keysText.rectTransform.anchoredPosition = new Vector2(-30f, 170f);
+
+        Text actionsText = NewText("Acciones", panel.transform, actions, 34, Color.white);
+        actionsText.alignment = TextAnchor.UpperLeft;
+        actionsText.rectTransform.anchorMin = actionsText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        actionsText.rectTransform.pivot = new Vector2(0f, 1f);
+        actionsText.rectTransform.sizeDelta = new Vector2(700f, 520f);
+        actionsText.rectTransform.anchoredPosition = new Vector2(30f, 170f);
 
         Text back = NewText("Volver", panel.transform, "Clic o Esc para volver", 28,
                             new Color(1f, 1f, 1f, 0.6f));

@@ -79,16 +79,10 @@ public class WaveSpawner : MonoBehaviour
     public int EnemiesAlive => alive.Count;
     public int RemainingToSpawn => Mathf.Max(0, totalThisWave - spawnedThisWave);
 
-    // Oleada que hay que guardar: la actual si esta en curso, o la siguiente si acabas de limpiar una.
-    public int WaveToResume => waveInProgress ? currentWave : currentWave + 1;
-
     private readonly List<GameObject> alive = new List<GameObject>();
     private readonly List<Vector3> pool = new List<Vector3>();
     private readonly List<int> bag = new List<int>();
     private Transform player;
-    private bool waveInProgress;
-    private bool started;
-    private int startWave = 1;
 
     private void Start()
     {
@@ -112,28 +106,7 @@ public class WaveSpawner : MonoBehaviour
             return;
         }
 
-        started = true;
-        currentWave = startWave - 1;
-        StartCoroutine(RunWaves(startWave, delayBeforeFirstWave));
-    }
-
-    // Para cargar partida: vuelve a empezar la oleada indicada, sin los enemigos que hubiera.
-    public void RestartAtWave(int wave)
-    {
-        startWave = Mathf.Max(1, wave);
-        currentWave = startWave - 1;
-        waveInProgress = false;
-        spawnedThisWave = 0;
-        totalThisWave = 0;
-
-        if (!started) return;   // aun no ha arrancado: Start() usara startWave
-
-        StopAllCoroutines();
-        foreach (GameObject e in alive)
-            if (e != null) Destroy(e);
-        alive.Clear();
-
-        StartCoroutine(RunWaves(startWave, delayBeforeFirstWave));
+        StartCoroutine(RunWaves());
     }
 
     // Junta los puntos manuales con los del anillo generado.
@@ -152,16 +125,14 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
-    private IEnumerator RunWaves(int firstWave, float initialDelay)
+    private IEnumerator RunWaves()
     {
-        yield return new WaitForSeconds(initialDelay);
+        yield return new WaitForSeconds(delayBeforeFirstWave);
 
         while (true)
         {
             currentWave++;
-            waveInProgress = true;
             yield return StartCoroutine(RunWave(currentWave));
-            waveInProgress = false;
 
             Debug.Log($"[WaveSpawner] Oleada {currentWave} limpiada.");
 
