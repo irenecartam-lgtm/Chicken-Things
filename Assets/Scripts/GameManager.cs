@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -25,6 +26,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Pausa")]
     public Key pauseKey = Key.Escape;   // tambien funciona la tecla P
+
+    [Header("Salir")]
+    [Tooltip("Nombre de la escena del menu principal (debe estar en Build Settings).")]
+    public string menuSceneName = "MainMenu";
 
     [Header("UI (opcional)")]
     public TextMeshProUGUI scoreText;
@@ -73,11 +78,59 @@ public class GameManager : MonoBehaviour
         if (kb[loadKey].wasPressedThisFrame) LoadGame();
 
         // R reinicia la partida desde la pausa o desde el Game Over.
-        if ((isPaused || isGameOver) && kb.rKey.wasPressedThisFrame)
-        {
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
+        if ((isPaused || isGameOver) && kb.rKey.wasPressedThisFrame) RestartGame();
+    }
+
+    // ------------------------------------------- Acciones (teclas y botones)
+    public void ResumeGame()
+    {
+        if (isPaused) SetPaused(false);
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void GoToMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(menuSceneName);
+    }
+
+    // En el juego compilado cierra la ventana por completo.
+    // Dentro del editor de Unity solo puede parar el modo Play.
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    // Activa o desactiva todo lo que lee el raton y el teclado durante la partida.
+    // Al apagar la camara el cursor queda libre y visible, y se puede pulsar un boton.
+    private void SetGameplayEnabled(bool on)
+    {
+        PlayerController pc = FindFirstObjectByType<PlayerController>();
+        if (pc != null) pc.enabled = on;
+        PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
+        if (ps != null) ps.enabled = on;
+        CameraController cam = FindFirstObjectByType<CameraController>();
+        if (cam != null) cam.enabled = on;
+    }
+
+    // Reanuda un fotograma despues y espera a que se suelte el clic:
+    // asi ni el Esc ni el clic del boton CONTINUAR se leen tambien como camara o disparo.
+    private IEnumerator ResumeGameplay()
+    {
+        yield return null;
+        while (Mouse.current != null && Mouse.current.leftButton.isPressed) yield return null;
+
+        if (isPaused || isGameOver) yield break;   // por si se volvio a pausar mientras tanto
+        SetGameplayEnabled(true);
     }
 
     // --------------------------------------------------------------- Pausa
@@ -92,16 +145,16 @@ public class GameManager : MonoBehaviour
         isPaused = paused;
         Time.timeScale = paused ? 0f : 1f;
 
-        // Con el tiempo a 0 el input seguiria activo (se podria disparar), asi que se bloquea.
-        PlayerController pc = FindFirstObjectByType<PlayerController>();
-        if (pc != null) pc.enabled = !paused;
-        PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
-        if (ps != null) ps.enabled = !paused;
-
-        if (hud != null)
+        if (paused)
         {
-            if (paused) hud.ShowPause();
-            else hud.HidePause();
+            // Con el tiempo a 0 el input seguiria activo (se podria disparar), asi que se bloquea.
+            SetGameplayEnabled(false);
+            if (hud != null) hud.ShowPause();
+        }
+        else
+        {
+            if (hud != null) hud.HidePause();
+            StartCoroutine(ResumeGameplay());
         }
     }
 
@@ -138,11 +191,8 @@ public class GameManager : MonoBehaviour
         isGameOver = true;
         Debug.Log("GAME OVER");
 
-        // Bloquea movimiento y disparo, y congela el juego.
-        PlayerController pc = FindFirstObjectByType<PlayerController>();
-        if (pc != null) pc.enabled = false;
-        PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
-        if (ps != null) ps.enabled = false;
+        // Bloquea movimiento, disparo y camara (deja el cursor libre) y congela el juego.
+        SetGameplayEnabled(false);
 
         Time.timeScale = 0f;
         if (hud != null) hud.ShowGameOver();
@@ -164,15 +214,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        WaveSpawner spawner = FindFirstObjectByType<WaveSpawner>();
+        int wave = spawner != null ? spawner.WaveToResume : 1;
+
         SaveData data = new SaveData
         {
             score = score,
             life = life,
-            playerPosition = pc.transform.position
+            playerPosition = pc.transform.position,
+            wave = wave
         };
         SaveSystem.Save(data);
 
-        if (hud != null) hud.ShowMessage("Partida guardada");
+        if (hud != null) hud.ShowMessage("Partida guardada - Oleada " + wave);
     }
 
     public void LoadGame()
@@ -203,6 +257,14 @@ public class GameManager : MonoBehaviour
         }
         PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
         if (ps != null) ps.enabled = true;
+        SetGameplayEnabled(true);
+
+        // Retoma la oleada guardada (las partidas antiguas no traen oleada: se deja como esta).
+        if (data.wave > 0)
+        {
+            WaveSpawner spawner = FindFirstObjectByType<WaveSpawner>();
+            if (spawner != null) spawner.RestartAtWave(data.wave);
+        }
 
         // Si estabas en Game Over o en pausa, la partida vuelve a estar en marcha.
         isGameOver = false;
@@ -215,7 +277,7 @@ public class GameManager : MonoBehaviour
         {
             hud.HideGameOver();
             hud.HidePause();
-            hud.ShowMessage("Partida cargada");
+            hud.ShowMessage(data.wave > 0 ? "Partida cargada - Oleada " + data.wave : "Partida cargada");
         }
     }
 }

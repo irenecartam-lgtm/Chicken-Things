@@ -230,6 +230,11 @@ public class PlayerHealthHUD : MonoBehaviour
         hint.rectTransform.sizeDelta = new Vector2(1000f, 80f);
         hint.rectTransform.anchoredPosition = new Vector2(0f, -70f);
 
+        Text hint2 = NewText("Salir", panel.transform, "M: menu principal     Q: salir del juego", 40, Color.white);
+        hint2.rectTransform.anchorMin = hint2.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        hint2.rectTransform.sizeDelta = new Vector2(1000f, 80f);
+        hint2.rectTransform.anchoredPosition = new Vector2(0f, -135f);
+
         gameOverPanel.SetActive(false);
     }
 
@@ -249,6 +254,11 @@ public class PlayerHealthHUD : MonoBehaviour
         hint.rectTransform.anchorMin = hint.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         hint.rectTransform.sizeDelta = new Vector2(1500f, 80f);
         hint.rectTransform.anchoredPosition = new Vector2(0f, -70f);
+
+        Text hint2 = NewText("Salir", panel.transform, "M: menu principal     Q: salir del juego", 36, Color.white);
+        hint2.rectTransform.anchorMin = hint2.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        hint2.rectTransform.sizeDelta = new Vector2(1500f, 80f);
+        hint2.rectTransform.anchoredPosition = new Vector2(0f, -130f);
 
         pausePanel.SetActive(false);
     }

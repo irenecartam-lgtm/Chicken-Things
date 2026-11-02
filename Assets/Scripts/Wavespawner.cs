@@ -79,10 +79,15 @@ public class WaveSpawner : MonoBehaviour
     public int EnemiesAlive => alive.Count;
     public int RemainingToSpawn => Mathf.Max(0, totalThisWave - spawnedThisWave);
 
+    // Oleada que hay que guardar: la actual si esta en curso, o la siguiente si acabas de limpiar una.
+    public int WaveToResume => waveInProgress ? currentWave : currentWave + 1;
+
     private readonly List<GameObject> alive = new List<GameObject>();
     private readonly List<Vector3> pool = new List<Vector3>();
     private readonly List<int> bag = new List<int>();
     private Transform player;
+    private bool waveInProgress;
+    private bool started;
 
     private void Start()
     {
@@ -106,6 +111,27 @@ public class WaveSpawner : MonoBehaviour
             return;
         }
 
+        started = true;
+        Debug.Log($"[WaveSpawner] Arranca en la oleada {currentWave + 1}.");
+        StartCoroutine(RunWaves());
+    }
+
+    // Para cargar partida: vuelve a empezar la oleada indicada, sin los enemigos que hubiera.
+    public void RestartAtWave(int wave)
+    {
+        currentWave = Mathf.Max(1, wave) - 1;   // RunWaves() suma 1 antes de lanzar
+        waveInProgress = false;
+        spawnedThisWave = 0;
+        totalThisWave = 0;
+
+        if (!started) return;   // aun no ha arrancado: Start() arrancara desde currentWave
+
+        StopAllCoroutines();
+        foreach (GameObject e in alive)
+            if (e != null) Destroy(e);
+        alive.Clear();
+
+        Debug.Log($"[WaveSpawner] Retomando la oleada {currentWave + 1}.");
         StartCoroutine(RunWaves());
     }
 
@@ -132,7 +158,9 @@ public class WaveSpawner : MonoBehaviour
         while (true)
         {
             currentWave++;
+            waveInProgress = true;
             yield return StartCoroutine(RunWave(currentWave));
+            waveInProgress = false;
 
             Debug.Log($"[WaveSpawner] Oleada {currentWave} limpiada.");
 
