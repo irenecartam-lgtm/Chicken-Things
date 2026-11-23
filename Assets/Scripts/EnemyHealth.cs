@@ -61,6 +61,18 @@ public class EnemyHealth : MonoBehaviour
         if (currentHealth <= 0) Die();
     }
 
+    // Dano de quemadura (lo usa BurningEffect): sin parpadeo blanco ni empujon,
+    // para que se vea el color y el fuego del enemigo ardiendo.
+    public void TakeBurnDamage(int amount)
+    {
+        if (isDead) return;
+
+        currentHealth = Mathf.Max(0, currentHealth - amount);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        if (currentHealth <= 0) Die();
+    }
+
     private IEnumerator Flash()
     {
         foreach (Renderer r in renderers) r.material.color = hitColor;

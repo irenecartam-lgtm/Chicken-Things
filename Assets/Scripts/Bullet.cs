@@ -18,6 +18,10 @@ public class Bullet : MonoBehaviour
     [Tooltip("Opcional: particulas o salpicadura al chocar.")]
     public GameObject impactEffect;
 
+    [Header("Salsa")]
+    [Tooltip("Color de la bolita mientras la salsa Buffalo esta activa.")]
+    public Color buffaloColor = new Color(1f, 0.3f, 0.05f);
+
     private Transform shooter;
 
     // La llama PlayerShooting justo despues de instanciar la bala.
@@ -26,6 +30,19 @@ public class Bullet : MonoBehaviour
     private void Start()
     {
         Destroy(gameObject, lifetime);
+
+        if (SauceInventory.BuffaloActive) TintBuffalo();
+    }
+
+    // Tine la bala de naranja sin crear materiales nuevos (MaterialPropertyBlock).
+    private void TintBuffalo()
+    {
+        MaterialPropertyBlock block = new MaterialPropertyBlock();
+        block.SetColor("_Color", buffaloColor);
+        block.SetColor("_BaseColor", buffaloColor);
+
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+            r.SetPropertyBlock(block);
     }
 
     private void Update()
@@ -59,7 +76,13 @@ public class Bullet : MonoBehaviour
     private void OnHit(RaycastHit hit)
     {
         EnemyHealth health = hit.collider.GetComponentInParent<EnemyHealth>();
-        if (health != null) health.TakeDamage(damage, transform.forward);
+        if (health != null)
+        {
+            health.TakeDamage(damage, transform.forward);
+
+            // Con la salsa Buffalo activa, un solo impacto prende fuego al enemigo.
+            SauceInventory.TryIgnite(health);
+        }
 
         if (impactEffect != null)
             Instantiate(impactEffect, hit.point, Quaternion.LookRotation(hit.normal));
