@@ -53,16 +53,25 @@ public class EnemyStatus : MonoBehaviour
     private Light fireLight;
     private float flickerSeed;
 
-    // Ralentizado
+    // Ralentizado (miel)
     private float slowLeft;
-    private ParticleSystem drips;
+    private ParticleSystem honeyDrips, honeyTrail;
     private float chaserSpeed;
     private float controllerPatrolSpeed, controllerChaseSpeed;
     private float flyerFlySpeed, flyerDiveSpeed, flyerOrbitSpeed;
 
-    // Pegado al suelo
+    // Pegado al suelo (queso)
     private float rootLeft;
     private GameObject cheeseRoot;
+    private Puddle cheesePuddle;
+    private ParticleSystem cheeseBubbles;
+    private GameObject stringsRoot;
+    private Transform[] strings;
+    private Vector3[] stringGround;      // donde se agarra cada hilo en el charco
+    private Vector3[] stringAttach;      // donde se agarra al cuerpo (desplazamiento horizontal)
+    private float stringThickness;
+    private Vector3 bodyOffset;          // centro del cuerpo respecto al transform del enemigo
+    private float bodyHeight;
     private RigidbodyConstraints savedConstraints;
     private bool savedGravity;
     private bool chaserWasOn, controllerWasOn, flyerWasOn;
@@ -86,8 +95,8 @@ public class EnemyStatus : MonoBehaviour
     {
         if (health != null) health.OnDied -= HandleDied;
 
-        // El charco de queso no es hijo del enemigo (se queda en el suelo): se limpia aparte.
-        if (cheeseRoot != null) Destroy(cheeseRoot);
+        // Lo que no es hijo del enemigo (charco de queso, hilos) se limpia aparte.
+        ReleaseCheese();
     }
 
     private void Update()
@@ -122,6 +131,7 @@ public class EnemyStatus : MonoBehaviour
         {
             rootLeft -= dt;
             if (rootLeft <= 0f) StopRoot();
+            else UpdateStrings();
         }
 
         UpdateTint();
@@ -131,39 +141,49 @@ public class EnemyStatus : MonoBehaviour
             fireLight.intensity = 1.2f + Mathf.PerlinNoise(Time.time * 14f, flickerSeed) * 1.4f;
     }
 
-    // Color del cuerpo segun el estado de mayor prioridad.
+    // Color del cuerpo segun el estado de mayor prioridad. Miel y queso ademas lo dejan brillante, como mojado.
     private void UpdateTint()
     {
         if (burnLeft > 0f)
         {
             float t = (Mathf.Sin(Time.time * 14f + flickerSeed) + 1f) * 0.5f;
             health.SetTint(Color.Lerp(new Color(1f, 0.2f, 0.03f), new Color(1f, 0.75f, 0.1f), t), 0.85f);
-            tint = TintKind.Burn;
+            SetKind(TintKind.Burn, false);
         }
         else if (rootLeft > 0f)
         {
             if (tint != TintKind.Cheese)
             {
-                health.SetTint(new Color(1f, 0.88f, 0.25f), 0.7f);
-                tint = TintKind.Cheese;
+                health.SetTint(new Color(1f, 0.85f, 0.2f), 0.8f);
+                SetKind(TintKind.Cheese, true);
             }
         }
         else if (slowLeft > 0f)
         {
             if (tint != TintKind.Honey)
             {
-                health.SetTint(new Color(0.95f, 0.55f, 0.08f), 0.55f);
-                tint = TintKind.Honey;
+                health.SetTint(new Color(0.95f, 0.45f, 0.04f), 0.85f);
+                SetKind(TintKind.Honey, true);
             }
         }
         else if (tint != TintKind.None)
         {
             health.ClearTint();
-            tint = TintKind.None;
+            SetKind(TintKind.None, false);
         }
     }
 
-    // Si muere ardiendo: nube de humo gris. Las llamas se quedan un momento donde cayo.
+    private void SetKind(TintKind kind, bool glossy)
+    {
+        bool wasGlossy = tint == TintKind.Cheese || tint == TintKind.Honey;
+        tint = kind;
+
+        if (glossy && !wasGlossy) health.SetGloss(0.9f);
+        else if (!glossy && wasGlossy) health.SetGloss(-1f);
+    }
+
+    // Si muere ardiendo: nube de humo gris. Las llamas y el rastro de miel se quedan donde cayo,
+    // y el charco de queso aguanta un poco en el suelo.
     private void HandleDied(EnemyHealth h)
     {
         if (burnLeft > 0f)
@@ -173,6 +193,9 @@ public class EnemyStatus : MonoBehaviour
         }
 
         DismantleFire();
+        DetachSystem(ref honeyDrips, 1.5f);
+        DetachSystem(ref honeyTrail, 7f);
+        ReleaseCheese();
     }
 
     // ---------------------------------------------------------------- Fuego
@@ -338,7 +361,7 @@ public class EnemyStatus : MonoBehaviour
             flyer.orbitSpeed = flyerOrbitSpeed * f;
         }
 
-        BuildDrips();
+        BuildHoney();
     }
 
     private void StopSlow()
@@ -358,49 +381,95 @@ public class EnemyStatus : MonoBehaviour
             flyer.orbitSpeed = flyerOrbitSpeed;
         }
 
-        if (drips != null)
-        {
-            drips.Stop(false, ParticleSystemStopBehavior.StopEmitting);
-            drips.transform.SetParent(null, true);
-            Destroy(drips.gameObject, 1.5f);
-            drips = null;
-        }
+        DetachSystem(ref honeyDrips, 1.5f);
+        DetachSystem(ref honeyTrail, 7f);   // las manchas del rastro se quedan en el suelo hasta que se desvanecen
     }
 
-    // Gotas de miel que caen del cuerpo.
-    private void BuildDrips()
+    // Salsa naranja: gotas gordas que caen del cuerpo y un rastro de manchas en el suelo por donde pasa.
+    private void BuildHoney()
     {
         Bounds b = BodyBounds();
         float height = Mathf.Max(0.5f, b.size.y);
         float width = Mathf.Max(0.4f, Mathf.Max(b.size.x, b.size.z));
+        Color honey = new Color(0.97f, 0.5f, 0.05f);
 
-        drips = SauceFX.NewSystem("GotasMiel", transform, b.center, SauceFX.SoftMaterial());
+        // Gotas.
+        honeyDrips = SauceFX.NewSystem("GotasMiel", transform, b.center, SauceFX.BlobMaterial());
 
-        ParticleSystem.MainModule m = drips.main;
+        ParticleSystem.MainModule m = honeyDrips.main;
         m.loop = true;
-        m.startLifetime = new ParticleSystem.MinMaxCurve(0.7f, 1.1f);
+        m.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 0.9f);
         m.startSpeed = 0f;
-        m.startSize = new ParticleSystem.MinMaxCurve(0.07f, 0.14f);
+        m.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
+        m.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
         m.startColor = Color.white;
-        m.gravityModifier = 0.5f;   // positivo = caen
-        m.maxParticles = 30;
+        m.gravityModifier = 1.1f;   // positivo = caen
+        m.maxParticles = 40;
 
-        ParticleSystem.EmissionModule e = drips.emission;
-        e.rateOverTime = 12f;
+        ParticleSystem.EmissionModule e = honeyDrips.emission;
+        e.rateOverTime = 18f;
 
-        ParticleSystem.ShapeModule s = drips.shape;
+        ParticleSystem.ShapeModule s = honeyDrips.shape;
         s.shapeType = ParticleSystemShapeType.Box;
         s.scale = new Vector3(width * 0.9f, height * 0.6f, width * 0.9f);
 
-        ParticleSystem.ColorOverLifetimeModule c = drips.colorOverLifetime;
+        ParticleSystem.ColorOverLifetimeModule c = honeyDrips.colorOverLifetime;
         c.enabled = true;
         c.color = SauceFX.MakeGradient(
-            new Color(0.98f, 0.65f, 0.1f, 0.95f),
-            new Color(0.92f, 0.55f, 0.08f, 0.95f),
-            new Color(0.8f, 0.42f, 0.05f, 0.8f),
-            new Color(0.7f, 0.35f, 0.05f, 0f));
+            SauceFX.WithAlpha(honey, 1f),
+            SauceFX.WithAlpha(honey, 1f),
+            SauceFX.WithAlpha(SauceFX.Darker(honey, 0.85f), 0.9f),
+            SauceFX.WithAlpha(SauceFX.Darker(honey, 0.7f), 0f));
 
-        drips.Play();
+        honeyDrips.Play();
+
+        // Rastro: manchas planas en el suelo, una cada poco trecho. No tiene sentido en los voladores.
+        if (flyer == null)
+        {
+            honeyTrail = SauceFX.NewSystem("RastroMiel", transform,
+                                           new Vector3(b.center.x, b.min.y + 0.05f, b.center.z), SauceFX.BlobMaterial());
+
+            ParticleSystem.MainModule tm = honeyTrail.main;
+            tm.loop = true;
+            tm.startLifetime = new ParticleSystem.MinMaxCurve(4f, 5.5f);
+            tm.startSpeed = 0f;
+            tm.startSize = new ParticleSystem.MinMaxCurve(width * 0.35f, width * 0.6f);
+            tm.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            tm.startColor = Color.white;
+            tm.maxParticles = 150;
+
+            ParticleSystem.EmissionModule te = honeyTrail.emission;
+            te.rateOverTime = 1.5f;       // aunque este quieto va dejando algo
+            te.rateOverDistance = 3f;     // y mas cuanto mas se mueva
+
+            ParticleSystem.ShapeModule ts = honeyTrail.shape;
+            ts.shapeType = ParticleSystemShapeType.Circle;
+            ts.radius = width * 0.25f;
+            ts.rotation = new Vector3(90f, 0f, 0f);   // reparte las manchas sobre el suelo
+
+            ParticleSystem.ColorOverLifetimeModule tc = honeyTrail.colorOverLifetime;
+            tc.enabled = true;
+            tc.color = SauceFX.MakeGradient(
+                SauceFX.WithAlpha(honey, 0.95f),
+                SauceFX.WithAlpha(honey, 0.95f),
+                SauceFX.WithAlpha(SauceFX.Darker(honey, 0.85f), 0.8f),
+                SauceFX.WithAlpha(SauceFX.Darker(honey, 0.7f), 0f));
+
+            honeyTrail.GetComponent<ParticleSystemRenderer>().renderMode = ParticleSystemRenderMode.HorizontalBillboard;
+
+            honeyTrail.Play();
+        }
+    }
+
+    // Deja de emitir y suelta el sistema del enemigo para que las particulas que quedan se desvanezcan solas.
+    private void DetachSystem(ref ParticleSystem ps, float destroyAfter)
+    {
+        if (ps == null) return;
+
+        ps.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+        ps.transform.SetParent(null, true);
+        Destroy(ps.gameObject, destroyAfter);
+        ps = null;
     }
 
     // -------------------------------------------------------------- Queso
@@ -453,48 +522,168 @@ public class EnemyStatus : MonoBehaviour
         if (controller != null && controllerWasOn) controller.enabled = true;
         if (flyer != null && flyerWasOn) flyer.enabled = true;
 
-        if (cheeseRoot != null)
-        {
-            Destroy(cheeseRoot);
-            cheeseRoot = null;
-        }
+        ReleaseCheese();
     }
 
-    // Charco de queso derretido en el suelo, justo debajo del enemigo.
+    // Charco de queso derretido en el suelo, con hilos que lo unen al enemigo y burbujas que revientan.
     private void BuildCheese()
     {
         Bounds b = BodyBounds();
         float width = Mathf.Max(0.8f, Mathf.Max(b.size.x, b.size.z));
         float groundY = FindGroundY(b);
 
+        bodyOffset = b.center - transform.position;
+        bodyHeight = Mathf.Max(0.5f, b.size.y);
+
+        Mesh sphere = SauceFX.SphereMesh();
+        Material cheese = SauceFX.CheeseMaterial();
+
+        // Charco: crece de golpe desde el centro. Una mancha grande, cuatro mas pequenas y dos "bultos" de queso.
         cheeseRoot = new GameObject("QuesoDerretido");
         cheeseRoot.transform.position = new Vector3(b.center.x, groundY + 0.02f, b.center.z);
+        cheesePuddle = cheeseRoot.AddComponent<Puddle>();
 
-        Mesh mesh = SauceFX.SphereMesh();
-        Material mat = SauceFX.CheeseMaterial();
-
-        // Una mancha grande en el centro y cuatro mas pequenas alrededor.
-        AddBlob(cheeseRoot.transform, mesh, mat, Vector3.zero, width * 1.5f);
+        SauceFX.AddFlatBlob(cheeseRoot.transform, sphere, cheese, Vector3.zero, width * 1.7f, 0.1f);
         for (int i = 0; i < 4; i++)
         {
             float angle = (i * 90f + Random.Range(-20f, 20f)) * Mathf.Deg2Rad;
-            Vector3 offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * width * 0.6f;
-            AddBlob(cheeseRoot.transform, mesh, mat, offset, width * Random.Range(0.5f, 0.8f));
+            Vector3 offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * width * 0.7f;
+            SauceFX.AddFlatBlob(cheeseRoot.transform, sphere, cheese, offset, width * Random.Range(0.55f, 0.9f), 0.1f);
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            Vector2 disc = Random.insideUnitCircle * width * 0.35f;
+            SauceFX.AddFlatBlob(cheeseRoot.transform, sphere, cheese,
+                                new Vector3(disc.x, 0f, disc.y), width * Random.Range(0.4f, 0.6f), 0.4f);
+        }
+
+        // Burbujas que suben del charco y revientan.
+        cheeseBubbles = SauceFX.NewSystem("BurbujasQueso", cheeseRoot.transform,
+                                          cheeseRoot.transform.position + Vector3.up * 0.1f, SauceFX.RingMaterial());
+
+        ParticleSystem.MainModule bm = cheeseBubbles.main;
+        bm.loop = true;
+        bm.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 1f);
+        bm.startSpeed = 0f;
+        bm.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.25f);
+        bm.startColor = Color.white;
+        bm.maxParticles = 30;
+
+        ParticleSystem.EmissionModule be = cheeseBubbles.emission;
+        be.rateOverTime = 10f;
+
+        ParticleSystem.ShapeModule bs = cheeseBubbles.shape;
+        bs.shapeType = ParticleSystemShapeType.Circle;
+        bs.radius = width * 0.8f;
+        bs.rotation = new Vector3(90f, 0f, 0f);
+
+        ParticleSystem.VelocityOverLifetimeModule bv = cheeseBubbles.velocityOverLifetime;
+        bv.enabled = true;
+        bv.space = ParticleSystemSimulationSpace.World;
+        bv.x = new ParticleSystem.MinMaxCurve(-0.05f, 0.05f);
+        bv.y = new ParticleSystem.MinMaxCurve(0.3f, 0.6f);
+        bv.z = new ParticleSystem.MinMaxCurve(-0.05f, 0.05f);
+
+        ParticleSystem.ColorOverLifetimeModule bc = cheeseBubbles.colorOverLifetime;
+        bc.enabled = true;
+        bc.color = SauceFX.MakeGradient(
+            new Color(1f, 0.95f, 0.5f, 0f),
+            new Color(1f, 0.92f, 0.45f, 0.9f),
+            new Color(1f, 0.88f, 0.35f, 0.6f),
+            new Color(1f, 0.85f, 0.3f, 0f));
+
+        ParticleSystem.SizeOverLifetimeModule bz = cheeseBubbles.sizeOverLifetime;
+        bz.enabled = true;
+        bz.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 1.3f));
+
+        cheeseBubbles.Play();
+
+        // Ahora que esta todo colocado, el charco empieza a crecer (arranca a escala 0: antes de esto
+        // colocar un hijo por posicion mundial daria valores invalidos).
+        cheesePuddle.Begin(0.35f);
+
+        // Hilos de queso estirado entre el charco y el cuerpo.
+        const int stringCount = 5;
+        stringsRoot = new GameObject("HilosQueso");
+        strings = new Transform[stringCount];
+        stringGround = new Vector3[stringCount];
+        stringAttach = new Vector3[stringCount];
+        stringThickness = Mathf.Clamp(width * 0.07f, 0.05f, 0.14f);
+
+        Mesh cylinder = SauceFX.CylinderMesh();
+        for (int i = 0; i < stringCount; i++)
+        {
+            float angle = (i * (360f / stringCount) + Random.Range(-15f, 15f)) * Mathf.Deg2Rad;
+            Vector3 dir = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+
+            stringGround[i] = new Vector3(b.center.x, groundY + 0.04f, b.center.z) + dir * width * 0.65f;
+            stringAttach[i] = dir * width * 0.22f;
+
+            GameObject go = new GameObject("Hilo", typeof(MeshFilter), typeof(MeshRenderer));
+            go.transform.SetParent(stringsRoot.transform, false);
+            go.GetComponent<MeshFilter>().sharedMesh = cylinder;
+
+            MeshRenderer mr = go.GetComponent<MeshRenderer>();
+            if (cheese != null) mr.sharedMaterial = cheese;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            strings[i] = go.transform;
+        }
+
+        UpdateStrings();
+    }
+
+    // Recoloca los hilos: del borde del charco a la parte baja del cuerpo (se estiran si el enemigo cae).
+    private void UpdateStrings()
+    {
+        if (stringsRoot == null || strings == null) return;
+
+        Vector3 body = transform.position + bodyOffset;
+        float attachY = body.y - bodyHeight * 0.3f;
+
+        for (int i = 0; i < strings.Length; i++)
+        {
+            Vector3 top = new Vector3(body.x + stringAttach[i].x, attachY, body.z + stringAttach[i].z);
+            Vector3 bottom = stringGround[i];
+            Vector3 d = top - bottom;
+            float length = d.magnitude;
+
+            if (length < 0.05f)
+            {
+                strings[i].gameObject.SetActive(false);
+                continue;
+            }
+
+            strings[i].gameObject.SetActive(true);
+            strings[i].position = (top + bottom) * 0.5f;
+            strings[i].rotation = Quaternion.FromToRotation(Vector3.up, d / length);
+            strings[i].localScale = new Vector3(stringThickness, length * 0.5f, stringThickness);   // el cilindro mide 2 de alto
         }
     }
 
-    private static void AddBlob(Transform parent, Mesh mesh, Material mat, Vector3 localOffset, float size)
+    // Suelta el queso: los hilos desaparecen y el charco aguanta un momento en el suelo antes de encogerse.
+    private void ReleaseCheese()
     {
-        GameObject go = new GameObject("Mancha", typeof(MeshFilter), typeof(MeshRenderer));
-        go.transform.SetParent(parent, false);
-        go.transform.localPosition = localOffset;
-        go.transform.localScale = new Vector3(size, size * 0.12f, size);
+        if (stringsRoot != null)
+        {
+            Destroy(stringsRoot);
+            stringsRoot = null;
+            strings = null;
+        }
 
-        go.GetComponent<MeshFilter>().sharedMesh = mesh;
+        if (cheeseBubbles != null)
+        {
+            cheeseBubbles.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+            cheeseBubbles = null;
+        }
 
-        MeshRenderer mr = go.GetComponent<MeshRenderer>();
-        if (mat != null) mr.sharedMaterial = mat;
-        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        if (cheesePuddle != null)
+        {
+            cheesePuddle.FadeOut(2.5f, 1.5f);
+            cheesePuddle = null;
+        }
+
+        cheeseRoot = null;
     }
 
     // Rayo hacia abajo ignorando al propio enemigo y al jugador.

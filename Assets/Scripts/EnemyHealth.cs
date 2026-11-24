@@ -45,6 +45,10 @@ public class EnemyHealth : MonoBehaviour
     private float tintStrength;
     private bool flashing;
 
+    // Brillo de cada material (miel y queso lo suben para que parezca mojado de salsa).
+    private string[] glossProps;
+    private float[] originalGloss;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
     {
@@ -59,8 +63,20 @@ public class EnemyHealth : MonoBehaviour
 
         renderers = GetComponentsInChildren<Renderer>();
         originalColors = new Color[renderers.Length];
+        glossProps = new string[renderers.Length];
+        originalGloss = new float[renderers.Length];
+
         for (int i = 0; i < renderers.Length; i++)
-            originalColors[i] = renderers[i].material.color;
+        {
+            Material m = renderers[i].material;
+            originalColors[i] = m.color;
+
+            // URP usa _Smoothness y el pipeline antiguo _Glossiness.
+            if (m.HasProperty("_Smoothness")) glossProps[i] = "_Smoothness";
+            else if (m.HasProperty("_Glossiness")) glossProps[i] = "_Glossiness";
+
+            originalGloss[i] = glossProps[i] != null ? m.GetFloat(glossProps[i]) : 0f;
+        }
     }
 
     private void OnEnable()
@@ -123,6 +139,18 @@ public class EnemyHealth : MonoBehaviour
 
         hasTint = false;
         if (!flashing) ApplyBaseColors();
+    }
+
+    // Sube el brillo de todos los materiales (0..1). Con un valor negativo vuelve al brillo original.
+    public void SetGloss(float value)
+    {
+        if (renderers == null) return;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] == null || glossProps[i] == null) continue;
+            renderers[i].material.SetFloat(glossProps[i], value < 0f ? originalGloss[i] : value);
+        }
     }
 
     private void ApplyBaseColors()

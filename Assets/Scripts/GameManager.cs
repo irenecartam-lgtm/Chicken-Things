@@ -192,6 +192,7 @@ public class GameManager : MonoBehaviour
         {
             UpdateUI();
             if (hud != null) hud.HealFlash();
+            HealEffect.Play();   // cruces blancas que suben alrededor del jugador
         }
         return healed;
     }

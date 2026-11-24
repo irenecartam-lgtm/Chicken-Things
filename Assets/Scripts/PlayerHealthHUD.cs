@@ -22,7 +22,7 @@ public class PlayerHealthHUD : MonoBehaviour
     public float trailDelay = 0.35f;
     public float trailSpeed = 0.6f;
 
-    private Image ring, trail, damageFlash;
+    private Image ring, trail, damageFlash, healFlash;
     private Text lifeLabel;
     private GameObject gameOverPanel;
     private GameObject pausePanel;
@@ -49,6 +49,11 @@ public class PlayerHealthHUD : MonoBehaviour
         // Destello rojo a pantalla completa al recibir daño.
         damageFlash = NewImage("DamageFlash", canvasGO.transform, null, new Color(1f, 0f, 0f, 0f));
         Stretch(damageFlash.rectTransform, 0f);
+
+        // Viñeta blanca en los bordes de la pantalla: aparece al curarte.
+        healFlash = NewImage("HealVignette", canvasGO.transform, MakeVignetteSprite(), new Color(1f, 1f, 0.95f, 0f));
+        healFlash.raycastTarget = false;
+        Stretch(healFlash.rectTransform, 0f);
 
         // Contenedor del HUD (abajo a la izquierda).
         RectTransform root = (RectTransform)new GameObject("PlayerHealth", typeof(RectTransform)).transform;
@@ -136,10 +141,10 @@ public class PlayerHealthHUD : MonoBehaviour
         }
     }
 
-    // Destello verde suave al curarse (salsa de mayonesa).
+    // Destello blanco suave al curarse (salsa de mayonesa).
     public void HealFlash()
     {
-        if (damageFlash != null) damageFlash.color = new Color(0.2f, 1f, 0.35f, 0.16f);
+        if (healFlash != null) healFlash.color = new Color(1f, 1f, 0.95f, 0.55f);
     }
 
     public void ShowGameOver()
@@ -192,6 +197,13 @@ public class PlayerHealthHUD : MonoBehaviour
             Color c = damageFlash.color;
             c.a = Mathf.MoveTowards(c.a, 0f, 1.2f * dt);
             damageFlash.color = c;
+        }
+
+        if (healFlash != null && healFlash.color.a > 0f)
+        {
+            Color hc = healFlash.color;
+            hc.a = Mathf.MoveTowards(hc.a, 0f, 0.9f * dt);
+            healFlash.color = hc;
         }
 
         if (toast != null && toast.color.a > 0f && Time.unscaledTime > toastUntil)
@@ -318,6 +330,31 @@ public class PlayerHealthHUD : MonoBehaviour
         img.fillOrigin = (int)Image.Origin360.Top;
         img.fillClockwise = true;
         img.fillAmount = 1f;
+    }
+
+    // Sprite transparente en el centro y opaco en los bordes (viñeta).
+    private static Sprite MakeVignetteSprite()
+    {
+        const int res = 128;
+        Texture2D tex = new Texture2D(res, res, TextureFormat.RGBA32, false);
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.filterMode = FilterMode.Bilinear;
+
+        for (int y = 0; y < res; y++)
+        {
+            for (int x = 0; x < res; x++)
+            {
+                float dx = (x + 0.5f) / res * 2f - 1f;
+                float dy = (y + 0.5f) / res * 2f - 1f;
+                float d = Mathf.Sqrt(dx * dx + dy * dy) / 1.2f;
+                float a = Mathf.Clamp01((d - 0.55f) / 0.45f);
+                a *= a;
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+            }
+        }
+
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, res, res), new Vector2(0.5f, 0.5f), 100f);
     }
 
     // Crea un sprite redondo (innerRatio = 0) o un anillo (innerRatio > 0) con borde suave.

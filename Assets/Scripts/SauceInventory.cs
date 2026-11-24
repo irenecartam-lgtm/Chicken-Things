@@ -154,24 +154,29 @@ public class SauceInventory : MonoBehaviour
                 break;
 
             case SauceType.Honey:
+                inv.SplatAt(point, direction, 12, 3.2f, 0.16f);
                 if (!target.IsDead)
                     EnemyStatus.Slow(target, inv.honeySlowFactor, inv.honeyEffectDuration);
                 break;
 
             case SauceType.Cheese:
+                inv.SplatAt(point, direction, 12, 3f, 0.15f);
                 if (!target.IsDead)
                     EnemyStatus.Root(target, inv.cheeseEffectDuration);
                 break;
 
             case SauceType.Mayo:
-                inv.HealFromDamage(damageDealt);
+                inv.SplatAt(point, direction, 9, 2.8f, 0.13f);
+                inv.HealFromDamage(damageDealt, point);
                 break;
 
             case SauceType.HotSauce:
                 inv.Explode(target, point);
                 break;
 
-            // Pimienta negra: la gestiona Bullet (rebota).
+            case SauceType.BlackPepper:
+                SauceFX.PepperBurst(point, direction);
+                break;
         }
     }
 
@@ -373,19 +378,39 @@ public class SauceInventory : MonoBehaviour
 
     // ------------------------------------------------------------- Efectos
 
+    // Salpicadura de la salsa activa en el punto de impacto: sale rebotada hacia atras y hacia arriba.
+    private void SplatAt(Vector3 point, Vector3 bulletDirection, int count, float speed, float size)
+    {
+        SauceInfo info = InfoOf(activeSauce);
+        if (info == null) return;
+
+        Vector3 dir = (-bulletDirection + Vector3.up * 0.7f).normalized;
+        SauceFX.Splat(point, dir, info.color, count, speed, size);
+    }
+
     // Mayonesa: parte del daño que haces se convierte en vida. La fraccion se acumula
     // hasta sumar 1 punto entero (la vida del jugador es un numero entero).
-    private void HealFromDamage(int damageDealt)
+    // Cada impacto lanza un orbe de luz hacia el jugador; el que completa un punto entero lleva la curacion.
+    private void HealFromDamage(int damageDealt, Vector3 from)
     {
         if (damageDealt <= 0 || GameManager.instance == null) return;
 
         healBuffer += damageDealt * mayoHealPerDamage;
         int whole = Mathf.FloorToInt(healBuffer);
-        if (whole <= 0) return;
+
+        if (whole <= 0)
+        {
+            HealOrb.Spawn(from, player, false, null);   // solo adorno: aun no suma un punto
+            return;
+        }
 
         healBuffer -= whole;
-        int healed = GameManager.instance.Heal(whole);
-        if (healed < whole) healBuffer = 0f;   // ya estaba al maximo: no se guarda para mas tarde
+        HealOrb.Spawn(from, player, true, () =>
+        {
+            if (GameManager.instance == null) return;
+            int healed = GameManager.instance.Heal(whole);
+            if (healed < whole) healBuffer = 0f;   // ya estaba al maximo: no se guarda para mas tarde
+        });
     }
 
     // Hot Sauce: explota en el punto de impacto y daña a los enemigos cercanos (no al que ha recibido el disparo).

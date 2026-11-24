@@ -38,7 +38,29 @@ public class Bullet : MonoBehaviour
         bounceRange = SauceInventory.PepperRange;
 
         // Con una salsa activa la bolita se tine de su color.
-        if (SauceInventory.TryGetActiveColor(out Color sauceColor)) TintBullet(sauceColor);
+        if (SauceInventory.TryGetActiveColor(out Color sauceColor))
+        {
+            TintBullet(sauceColor);
+            AddTrail(sauceColor);
+        }
+    }
+
+    // Estela del color de la salsa detras de la bala.
+    private void AddTrail(Color color)
+    {
+        TrailRenderer tr = gameObject.AddComponent<TrailRenderer>();
+        tr.sharedMaterial = SauceFX.SoftMaterial();
+        tr.time = 0.25f;
+        tr.startWidth = 0.18f;
+        tr.endWidth = 0f;
+        tr.minVertexDistance = 0.05f;
+        tr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        tr.receiveShadows = false;
+        tr.colorGradient = SauceFX.MakeGradient(
+            SauceFX.WithAlpha(color, 0.9f),
+            SauceFX.WithAlpha(color, 0.6f),
+            SauceFX.WithAlpha(color, 0.25f),
+            SauceFX.WithAlpha(color, 0f));
     }
 
     // Tine la bala sin crear materiales nuevos (MaterialPropertyBlock).
