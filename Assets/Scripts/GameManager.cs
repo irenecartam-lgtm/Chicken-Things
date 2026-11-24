@@ -179,6 +179,23 @@ public class GameManager : MonoBehaviour
         if (life <= 0) GameOver();
     }
 
+    // Cura vida (salsa de mayonesa). Devuelve cuanta vida se ha curado de verdad (0 si ya estaba al maximo).
+    public int Heal(int amount)
+    {
+        if (isGameOver || amount <= 0) return 0;
+
+        int before = life;
+        life = Mathf.Min(maxLife, life + amount);
+        int healed = life - before;
+
+        if (healed > 0)
+        {
+            UpdateUI();
+            if (hud != null) hud.HealFlash();
+        }
+        return healed;
+    }
+
     void UpdateUI()
     {
         if (scoreText != null) scoreText.text = "Puntos: " + score;

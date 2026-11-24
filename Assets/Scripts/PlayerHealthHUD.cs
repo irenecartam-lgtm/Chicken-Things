@@ -136,6 +136,12 @@ public class PlayerHealthHUD : MonoBehaviour
         }
     }
 
+    // Destello verde suave al curarse (salsa de mayonesa).
+    public void HealFlash()
+    {
+        if (damageFlash != null) damageFlash.color = new Color(0.2f, 1f, 0.35f, 0.16f);
+    }
+
     public void ShowGameOver()
     {
         gameOver = true;
