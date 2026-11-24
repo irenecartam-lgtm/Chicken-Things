@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 public enum Sfx
 {
     Shoot, Hit, EnemyDie, Explosion, Heal, Pickup, WaveStart, WaveClear, Hurt, GameOver,
-    MenuOpen, MenuTick, MenuDeny, SauceOn, SauceOff, Ignite, Splat, Pepper
+    MenuOpen, MenuTick, MenuDeny, SauceOn, SauceOff, Ignite, Splat, Pepper, Intro
 }
 
 public class GameAudio : MonoBehaviour
@@ -22,6 +22,7 @@ public class GameAudio : MonoBehaviour
 
     public static float sfxVolume = 0.8f;
     public static float musicVolume = 0.3f;
+    public static float musicDuck = 1f;   // 0 = musica callada (lo usa el video de intro)
     public static Key muteMusicKey = Key.M;
 
     private const int SR = 32000;       // frecuencia de muestreo (mono)
@@ -41,6 +42,7 @@ public class GameAudio : MonoBehaviour
     private static void ResetStatics()
     {
         Instance = null;
+        musicDuck = 1f;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -147,7 +149,7 @@ public class GameAudio : MonoBehaviour
         // Entrada suave y cambio de volumen sin cortes (usa tiempo real: tambien suena con el juego en pausa).
         // Si hay que cambiar de pista: primero baja el volumen a 0 y entonces se cambia (fundido).
         bool wrongTrack = music.clip != wantedClip && wantedClip != null;
-        float target = (musicMuted || wrongTrack) ? 0f : musicVolume;
+        float target = (musicMuted || wrongTrack) ? 0f : musicVolume * musicDuck;
         float speed = wrongTrack ? 1.5f : 0.4f;
         musicFade = Mathf.MoveTowards(musicFade, target, speed * Time.unscaledDeltaTime);
 
@@ -431,6 +433,26 @@ public class GameAudio : MonoBehaviour
                 b = Buf(0.2f);
                 Tone(b, 0f, 0.14f, 420f, 130f, 0.7f, 18f, 0);
                 Noise(b, 0f, 0.1f, 0.5f, 25f, 2500f, 800f);
+                break;
+
+            case Sfx.Intro:
+                // Sonido de inicio de pelicula: redoble de timbales, subida, impacto grave con platillo
+                // y acorde heroico sostenido (La menor) que se apaga.
+                b = Buf(5.2f);
+                Noise(b, 0f, 1.3f, 0.5f, 0f, 300f, 8000f);                                   // subida de ruido
+                Tone(b, 0f, 1.3f, 60f, 140f, 0.35f, 0f, 3, 1.1f);                            // zumbido grave que sube
+                float[] roll = { 0.25f, 0.55f, 0.8f, 0.97f, 1.1f, 1.18f, 1.24f };
+                for (int i = 0; i < roll.Length; i++)
+                    Tone(b, roll[i], 0.3f, 110f, 70f, 0.5f + i * 0.07f, 9f, 0);              // timbales cada vez mas rapidos
+                Tone(b, 1.3f, 2.4f, 78f, 26f, 1f, 1.6f, 0);                                  // impacto: subgrave
+                Noise(b, 1.3f, 3.2f, 0.8f, 1.3f, 9000f, 1800f);                              // platillo
+                Noise(b, 1.3f, 0.25f, 0.9f, 12f, 4000f, 800f);                               // golpe seco
+                float[] chord = { 110f, 164.81f, 220f, 261.63f, 329.63f };
+                for (int i = 0; i < chord.Length; i++)
+                {
+                    Tone(b, 1.3f, 3.6f, chord[i], chord[i] * 1.003f, 0.2f, 0.9f, 3, 0.03f);
+                    Tone(b, 1.3f, 3.6f, chord[i] * 2f, chord[i] * 2f * 0.997f, 0.07f, 0.9f, 2, 0.03f);
+                }
                 break;
 
             default: // Pepper
