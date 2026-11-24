@@ -164,6 +164,8 @@ public class WaveSpawner : MonoBehaviour
 
             Debug.Log($"[WaveSpawner] Oleada {currentWave} limpiada.");
 
+            GameAudio.Play(Sfx.WaveClear);
+
             if (showBanner)
                 WaveBanner.Show($"OLEADA {currentWave} SUPERADA", "Preparate...");
 
@@ -180,6 +182,8 @@ public class WaveSpawner : MonoBehaviour
                                    spawnInterval - intervalReductionPerWave * (wave - 1));
 
         Debug.Log($"[WaveSpawner] Oleada {wave}: {totalThisWave} enemigos, uno cada {interval:0.00}s.");
+
+        GameAudio.Play(Sfx.WaveStart);
 
         if (showBanner)
             WaveBanner.Show($"OLEADA {wave}", $"{totalThisWave} enemigos en camino");

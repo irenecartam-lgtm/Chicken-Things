@@ -34,6 +34,7 @@ public class Bullet : MonoBehaviour
 
     private void Start()
     {
+        GameAudio.Play(Sfx.Shoot, transform.position, 0.6f);
         bouncesLeft = SauceInventory.PepperBounces;
         bounceRange = SauceInventory.PepperRange;
 

@@ -149,23 +149,27 @@ public class SauceInventory : MonoBehaviour
         switch (inv.activeSauce)
         {
             case SauceType.Buffalo:
+                GameAudio.Play(Sfx.Ignite, point, 0.8f);
                 if (!target.IsDead)
                     EnemyStatus.Burn(target, inv.burnDuration, inv.burnDamagePerTick, inv.burnTickInterval);
                 break;
 
             case SauceType.Honey:
+                GameAudio.Play(Sfx.Splat, point);
                 inv.SplatAt(point, direction, 12, 3.2f, 0.16f);
                 if (!target.IsDead)
                     EnemyStatus.Slow(target, inv.honeySlowFactor, inv.honeyEffectDuration);
                 break;
 
             case SauceType.Cheese:
+                GameAudio.Play(Sfx.Splat, point);
                 inv.SplatAt(point, direction, 12, 3f, 0.15f);
                 if (!target.IsDead)
                     EnemyStatus.Root(target, inv.cheeseEffectDuration);
                 break;
 
             case SauceType.Mayo:
+                GameAudio.Play(Sfx.Splat, point, 0.8f);
                 inv.SplatAt(point, direction, 9, 2.8f, 0.13f);
                 inv.HealFromDamage(damageDealt, point);
                 break;
@@ -175,6 +179,7 @@ public class SauceInventory : MonoBehaviour
                 break;
 
             case SauceType.BlackPepper:
+                GameAudio.Play(Sfx.Pepper, point);
                 SauceFX.PepperBurst(point, direction);
                 break;
         }
@@ -184,6 +189,7 @@ public class SauceInventory : MonoBehaviour
     public void Collect(int amount)
     {
         bolitas += amount;
+        GameAudio.Play(Sfx.Pickup, 0.5f);
     }
 
     // --------------------------------------------------------------- Estado
@@ -314,6 +320,7 @@ public class SauceInventory : MonoBehaviour
     private void OpenMenu()
     {
         menuOpen = true;
+        GameAudio.Play(Sfx.MenuOpen);
         RefreshCardTexts();
     }
 
@@ -330,6 +337,7 @@ public class SauceInventory : MonoBehaviour
         if (invertScroll) dir = -dir;
 
         selected = (selected + dir + sauces.Length) % sauces.Length;
+        GameAudio.Play(Sfx.MenuTick);
         nextScrollTime = Time.unscaledTime + scrollCooldown;
     }
 
@@ -339,6 +347,7 @@ public class SauceInventory : MonoBehaviour
 
         if (sauceActive)
         {
+            GameAudio.Play(Sfx.MenuDeny);
             ShowMessage("Ya hay una salsa activa");
             menuOpen = false;
             return;
@@ -347,6 +356,7 @@ public class SauceInventory : MonoBehaviour
         if (bolitas < info.cost)
         {
             // El selector sigue abierto para poder elegir otra.
+            GameAudio.Play(Sfx.MenuDeny);
             ShowMessage("Te faltan " + (info.cost - bolitas) + " bolitas");
             return;
         }
@@ -357,11 +367,13 @@ public class SauceInventory : MonoBehaviour
         sauceActive = true;
         menuOpen = false;
 
+        GameAudio.Play(Sfx.SauceOn);
         WaveBanner.Show("SALSA " + info.name, info.description);
     }
 
     private void EndSauce()
     {
+        GameAudio.Play(Sfx.SauceOff);
         SauceInfo info = InfoOf(activeSauce);
         sauceActive = false;
         remaining = 0f;

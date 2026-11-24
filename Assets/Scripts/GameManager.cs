@@ -172,6 +172,7 @@ public class GameManager : MonoBehaviour
 
         invulnerableUntil = Time.time + invulnerableTime;
         life = Mathf.Max(0, life - amount);
+        GameAudio.Play(Sfx.Hurt);
 
         UpdateUI();
         if (hud != null) hud.SetLife(life, maxLife, true);
@@ -192,6 +193,7 @@ public class GameManager : MonoBehaviour
         {
             UpdateUI();
             if (hud != null) hud.HealFlash();
+            GameAudio.Play(Sfx.Heal);
             HealEffect.Play();   // cruces blancas que suben alrededor del jugador
         }
         return healed;
@@ -207,6 +209,7 @@ public class GameManager : MonoBehaviour
     void GameOver()
     {
         isGameOver = true;
+        GameAudio.Play(Sfx.GameOver);
         Debug.Log("GAME OVER");
 
         // Bloquea movimiento, disparo y camara (deja el cursor libre) y congela el juego.

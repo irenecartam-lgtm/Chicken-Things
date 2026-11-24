@@ -100,6 +100,7 @@ public class EnemyHealth : MonoBehaviour
 
         StopAllCoroutines();
         StartCoroutine(Flash());
+        GameAudio.Play(Sfx.Hit, transform.position, 0.7f);
 
         if (rb != null && !rb.isKinematic && !ignoreKnockback && hitDirection != Vector3.zero)
         {
@@ -182,6 +183,7 @@ public class EnemyHealth : MonoBehaviour
     private void Die()
     {
         isDead = true;
+        GameAudio.Play(Sfx.EnemyDie, transform.position, 0.9f);
         OnDied?.Invoke(this);
 
         if (GameManager.instance != null)

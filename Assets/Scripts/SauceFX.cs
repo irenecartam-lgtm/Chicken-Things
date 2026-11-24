@@ -413,6 +413,7 @@ public static class SauceFX
     // manchas de salsa en el suelo, destello de luz y un poco de humo.
     public static void Explosion(Vector3 position, float radius)
     {
+        GameAudio.Play(Sfx.Explosion, position);
         Color sauceRed = new Color(0.8f, 0.05f, 0.08f);
 
         // 1) Bola de fuego.
