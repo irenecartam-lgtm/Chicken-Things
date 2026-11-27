@@ -86,6 +86,9 @@ public class DeathDebris : MonoBehaviour
             mr.sharedMaterial = mat;
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
+            // Cada resto es una bolita que el jugador puede recoger (ver DebrisPickup).
+            piece.AddComponent<DebrisPickup>();
+
             Register(piece);
         }
     }
@@ -121,6 +124,18 @@ public class DeathDebris : MonoBehaviour
     private void Register(GameObject piece)
     {
         registry.Enqueue(piece);
+
+        // Las bolitas recogidas se destruyen pero siguen en la cola: se limpian aqui
+        // para que no cuenten contra el tope y borren bolitas validas antes de tiempo.
+        if (registry.Count > Mathf.Max(1, maxPiecesInScene))
+        {
+            List<GameObject> alive = new List<GameObject>();
+            foreach (GameObject g in registry)
+                if (g != null) alive.Add(g);
+
+            registry.Clear();
+            foreach (GameObject g in alive) registry.Enqueue(g);
+        }
 
         while (registry.Count > Mathf.Max(1, maxPiecesInScene))
         {

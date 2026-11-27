@@ -292,13 +292,13 @@ public class MainMenu : MonoBehaviour
     private void StartNewGame()
     {
         GameBoot.loadSaveOnStart = false;
-        SceneManager.LoadScene(gameSceneName);
+        IntroVideo.PlayAndLoad(gameSceneName);   // video de intro, fundido y empieza el juego
     }
 
     private void LoadSavedGame()
     {
         GameBoot.loadSaveOnStart = true;
-        SceneManager.LoadScene(gameSceneName);
+        IntroVideo.PlayAndLoad(gameSceneName, false);   // sin video, solo el fundido
     }
 
     private void ToggleControls()
