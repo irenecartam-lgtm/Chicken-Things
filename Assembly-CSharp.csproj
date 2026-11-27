@@ -54,25 +54,40 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\ClimbableMountains.cs" />
+    <Compile Include="Assets\Scripts\SauceInventory.cs" />
     <Compile Include="Assets\Scripts\Enemyhealthbar.cs" />
     <Compile Include="Assets\Scripts\EnemyFlyer.cs" />
+    <Compile Include="Assets\Scripts\HealEffect.cs" />
+    <Compile Include="Assets\Scripts\LightFade.cs" />
+    <Compile Include="Assets\Scripts\BurningEffect.cs" />
+    <Compile Include="Assets\Scripts\DebrisPickup.cs" />
     <Compile Include="Assets\Scripts\PlayerHealthHUD.cs" />
     <Compile Include="Assets\Scripts\Enemychaser.cs" />
+    <Compile Include="Assets\Scripts\EnemyStatus.cs" />
+    <Compile Include="Assets\Scripts\EnemyRoller.cs" />
     <Compile Include="Assets\Scripts\SaveSystem.cs" />
     <Compile Include="Assets\Scripts\FitColliderToModel.cs" />
     <Compile Include="Assets\Scripts\SaveData.cs" />
+    <Compile Include="Assets\Scripts\MapBounds.cs" />
+    <Compile Include="Assets\Scripts\WaveHUD.cs" />
     <Compile Include="Assets\Scripts\Wavespawner.cs" />
     <Compile Include="Assets\Scripts\EnemyController.cs" />
+    <Compile Include="Assets\Scripts\VisibleBarrier.cs" />
+    <Compile Include="Assets\Scripts\GameAudio.cs" />
     <Compile Include="Assets\Scripts\Bullet.cs" />
     <Compile Include="Assets\Scripts\MainMenu.cs" />
     <Compile Include="Assets\Scripts\PlayerShooting.cs" />
     <Compile Include="Assets\Scripts\WaveBanner.cs" />
     <Compile Include="Assets\Scripts\DeathDebris.cs" />
     <Compile Include="Assets\Scripts\WeaponHolder.cs" />
+    <Compile Include="Assets\Scripts\SauceFX.cs" />
     <Compile Include="Assets\Scripts\FollowCamera.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Scripts\Playercontroller.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\IntroVideo.cs" />
+    <Compile Include="Assets\Scripts\HealOrb.cs" />
+    <Compile Include="Assets\Scripts\Puddle.cs" />
     <Compile Include="Assets\Scripts\CameraController.cs" />
   </ItemGroup>
   <ItemGroup>

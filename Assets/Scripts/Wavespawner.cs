@@ -32,6 +32,16 @@ public class WaveSpawner : MonoBehaviour
     [Tooltip("Altura a la que aparecen las alitas sobre su punto de spawn.")]
     public float flyerSpawnHeight = 5f;
 
+    [Header("Croqueta (rueda)")]
+    [Tooltip("Prefab de la croqueta. Si se deja vacio no sale.")]
+    public GameObject rollerPrefab;
+
+    [Tooltip("Proporcion de croquetas sobre el total de la oleada.")]
+    [Range(0f, 1f)] public float rollerChance = 0.25f;
+
+    [Tooltip("Oleada a partir de la cual empiezan a aparecer croquetas.")]
+    public int rollerFromWave = 3;
+
     [Header("Ritmo de aparicion")]
     [Tooltip("Segundos entre un enemigo y el siguiente, en la primera oleada.")]
     public float spawnInterval = 1.2f;
@@ -225,7 +235,12 @@ public class WaveSpawner : MonoBehaviour
                   && currentWave >= flyerFromWave
                   && Random.value < flyerChance;
 
-        GameObject prefab = flyer ? flyerPrefab : enemyPrefab;
+        bool roller = !flyer
+                   && rollerPrefab != null
+                   && currentWave >= rollerFromWave
+                   && Random.value < rollerChance;
+
+        GameObject prefab = flyer ? flyerPrefab : roller ? rollerPrefab : enemyPrefab;
         if (flyer) position += Vector3.up * flyerSpawnHeight;
 
         alive.Add(Instantiate(prefab, position, Quaternion.identity));

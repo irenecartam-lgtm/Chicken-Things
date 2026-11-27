@@ -45,6 +45,7 @@ public class EnemyStatus : MonoBehaviour
     private EnemyChaser chaser;
     private EnemyController controller;
     private EnemyFlyer flyer;
+    private EnemyRoller roller;
 
     // Quemado
     private float burnLeft, burnTimer, burnInterval = 0.8f;
@@ -59,6 +60,7 @@ public class EnemyStatus : MonoBehaviour
     private float chaserSpeed;
     private float controllerPatrolSpeed, controllerChaseSpeed;
     private float flyerFlySpeed, flyerDiveSpeed, flyerOrbitSpeed;
+    private float rollerSpeed, rollerChargeSpeed;
 
     // Pegado al suelo (queso)
     private float rootLeft;
@@ -74,7 +76,7 @@ public class EnemyStatus : MonoBehaviour
     private float bodyHeight;
     private RigidbodyConstraints savedConstraints;
     private bool savedGravity;
-    private bool chaserWasOn, controllerWasOn, flyerWasOn;
+    private bool chaserWasOn, controllerWasOn, flyerWasOn, rollerWasOn;
 
     private enum TintKind { None, Burn, Cheese, Honey }
     private TintKind tint = TintKind.None;
@@ -86,6 +88,7 @@ public class EnemyStatus : MonoBehaviour
         chaser = GetComponent<EnemyChaser>();
         controller = GetComponent<EnemyController>();
         flyer = GetComponent<EnemyFlyer>();
+        roller = GetComponent<EnemyRoller>();
         flickerSeed = Random.value * 100f;
 
         if (health != null) health.OnDied += HandleDied;
@@ -360,6 +363,13 @@ public class EnemyStatus : MonoBehaviour
             flyer.diveSpeed = flyerDiveSpeed * f;
             flyer.orbitSpeed = flyerOrbitSpeed * f;
         }
+        if (roller != null)
+        {
+            rollerSpeed = roller.speed;
+            rollerChargeSpeed = roller.chargeSpeed;
+            roller.speed = rollerSpeed * f;
+            roller.chargeSpeed = rollerChargeSpeed * f;
+        }
 
         BuildHoney();
     }
@@ -379,6 +389,11 @@ public class EnemyStatus : MonoBehaviour
             flyer.flySpeed = flyerFlySpeed;
             flyer.diveSpeed = flyerDiveSpeed;
             flyer.orbitSpeed = flyerOrbitSpeed;
+        }
+        if (roller != null)
+        {
+            roller.speed = rollerSpeed;
+            roller.chargeSpeed = rollerChargeSpeed;
         }
 
         DetachSystem(ref honeyDrips, 1.5f);
@@ -483,6 +498,8 @@ public class EnemyStatus : MonoBehaviour
         chaserWasOn = chaser != null && chaser.enabled;
         controllerWasOn = controller != null && controller.enabled;
         flyerWasOn = flyer != null && flyer.enabled;
+        rollerWasOn = roller != null && roller.enabled;
+        if (roller != null) roller.enabled = false;
         if (chaser != null) chaser.enabled = false;
         if (controller != null) controller.enabled = false;
         if (flyer != null) flyer.enabled = false;
@@ -521,6 +538,7 @@ public class EnemyStatus : MonoBehaviour
         if (chaser != null && chaserWasOn) chaser.enabled = true;
         if (controller != null && controllerWasOn) controller.enabled = true;
         if (flyer != null && flyerWasOn) flyer.enabled = true;
+        if (roller != null && rollerWasOn) roller.enabled = true;
 
         ReleaseCheese();
     }
